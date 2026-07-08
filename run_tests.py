@@ -2,6 +2,7 @@
 """Unified lightweight test runner for the objective grading project."""
 
 import csv
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -182,4 +183,7 @@ class FileWorkflowTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main(verbosity=2)
+    suite = unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__])
+    suite.addTests(unittest.defaultTestLoader.discover("tests", pattern="test*.py"))
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    raise SystemExit(0 if result.wasSuccessful() else 1)

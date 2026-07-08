@@ -1968,6 +1968,27 @@ def main(argv: Optional[List[str]] = None) -> int:
     return 0
 
 
+from app.domain.grading import (  # noqa: E402,F401
+    AnswerKey,
+    QuestionResult,
+    QuestionSpec,
+    StudentResult,
+    Submission,
+    allowed_options,
+    format_expected_answer,
+    grade_all,
+    grade_submission,
+    is_choice_answer,
+    is_choice_like_answer,
+    matches_text_answer,
+    normalize_answer,
+    normalize_text_answer,
+    score_answer,
+    score_answer_detail,
+)
+from app.domain.grading.normalize import parse_question_number  # noqa: E402,F401
+
+
 if __name__ == "__main__":
     try:
         raise SystemExit(main())

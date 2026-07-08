@@ -27,8 +27,10 @@ class KnowledgeProfilesBuilderTests(unittest.TestCase):
         new_profiles = build_knowledge_profiles(specs, results)
         self.assertEqual(len(new_profiles), len(legacy_profiles))
         for i in range(len(new_profiles)):
-            for k in ["student_id","tag","score","max_score","mastery","question_count","weak"]:
+            for k in ["student_id","tag","score","max_score","mastery","question_count"]:
                 self.assertEqual(new_profiles[i].get(k), getattr(legacy_profiles[i], k, None), f"Row {i} {k}")
+            # weak is boolean in legacy dataclass, "yes"/"no" in builder dict
+            self.assertEqual(new_profiles[i].get("weak"), "yes" if legacy_profiles[i].weak else "no")
     def test_empty(self): self.assertEqual(build_knowledge_profiles([], []), [])
     def test_no_legacy(self):
         f = PROJECT_ROOT/"app/application/use_cases/report_builders/knowledge_profiles.py"

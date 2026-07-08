@@ -43,7 +43,8 @@ def build_class_report(exam_meta: dict, questions: list, results: list, profiles
         tag_counts[tag] = tag_counts.get(tag, 0) + 1
     weak_students = {}
     for p in profiles:
-        if p.get("weak"):
+        weak_val = p.get("weak")
+        if weak_val == "yes" or weak_val is True:
             weak_students[p.get("tag", "")] = weak_students.get(p.get("tag", ""), 0) + 1
     for tag in sorted(tag_scores):
         avg = round(tag_scores[tag] / tag_counts[tag], 2) if tag_counts.get(tag) else 0

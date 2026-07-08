@@ -62,7 +62,7 @@ def build_practice_recommendations(profiles: list, question_bank: list, per_tag:
     rows = []
     weak = sorted(profiles, key=lambda p: (p.get("student_id", ""), p.get("mastery", 0), p.get("tag", "")))
     for profile in weak:
-        if not profile.get("weak"): continue
+        if profile.get("weak") != "yes" and profile.get("weak") is not True: continue
         tag = profile.get("tag", "")
         target_diff = target_difficulties.get((profile.get("student_id", ""), tag), 0)
         selected = 0

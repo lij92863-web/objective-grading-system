@@ -4,10 +4,10 @@ from collections import defaultdict
 
 
 def _mastery_level(mastery: float) -> str:
-    if mastery < 40: return "severe_weak"
-    if mastery < 60: return "obvious_weak"
-    if mastery < 80: return "basic_mastery"
-    return "well_mastered"
+    if mastery < 40: return "严重薄弱"
+    if mastery < 60: return "明显薄弱"
+    if mastery < 80: return "基本掌握"
+    return "掌握较好"
 
 
 def build_knowledge_profiles(questions: list, results: list, weak_threshold: float = 70.0) -> list:
@@ -43,7 +43,7 @@ def build_knowledge_profiles(questions: list, results: list, weak_threshold: flo
                 max_score=round(mx, 4),
                 mastery=mastery,
                 question_count=tag_counts[tag],
-                weak=mastery < weak_threshold,
+                weak="yes" if mastery < weak_threshold else "no",
                 mastery_level=_mastery_level(mastery),
             ))
     return profiles

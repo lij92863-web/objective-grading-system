@@ -1,0 +1,7 @@
+﻿student_id,name,weak_tag,mastery,question_id,difficulty,stem,answer,tags
+S001,Student One,function_concept,50.0,B003,medium,Identify the correct function statements.,BD,function_concept
+S002,Student Two,geometry_area,0.0,B004,easy,Find the area from the given dimensions.,C,geometry_area
+S002,Student Two,linear_equation,0.0,B001,easy,Solve a basic linear equation.,A,linear_equation
+S002,Student Two,linear_equation,0.0,B002,medium,Choose an equivalent equation form.,C,linear_equation
+S003,Student Three,geometry_area,0.0,B004,easy,Find the area from the given dimensions.,C,geometry_area
+S003,Student Three,function_concept,50.0,B003,medium,Identify the correct function statements.,BD,function_concept

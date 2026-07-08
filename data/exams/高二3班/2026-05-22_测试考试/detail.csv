@@ -1,0 +1,10 @@
+﻿student_id,name,question,question_id,difficulty,tags,expected,actual,score,max_score,status
+230301,张三,1,B001,1,linear_equation,A,A,1.0,1.0,correct
+230301,张三,2,B003,3,function_concept,BD,B,1.0,2.0,partial
+230301,张三,3,B004,2,geometry_area,C,C,1.0,1.0,correct
+230302,李四,1,B001,1,linear_equation,A,B,0.0,1.0,wrong
+230302,李四,2,B003,3,function_concept,BD,C,0.0,2.0,wrong
+230302,李四,3,B004,2,geometry_area,C,D,0.0,1.0,wrong
+230999,UNMATCHED_230999,1,B001,1,linear_equation,A,A,1.0,1.0,correct
+230999,UNMATCHED_230999,2,B003,3,function_concept,BD,A,0.0,2.0,wrong
+230999,UNMATCHED_230999,3,B004,2,geometry_area,C,A,0.0,1.0,wrong

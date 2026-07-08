@@ -1,0 +1,9 @@
+{
+  "class_id": "class_001",
+  "class_name": "高二3班",
+  "created_at": "2026-05-22T23:32:12",
+  "updated_at": "2026-05-23T00:35:44",
+  "student_count": 2,
+  "source_file": "sample_roster.csv",
+  "notes": ""
+}

@@ -1,0 +1,10 @@
+﻿student_id,name,tag,score,max_score,mastery,question_count,weak
+230301,张三,function_concept,1.0,2.0,50.0,1,yes
+230301,张三,geometry_area,1.0,1.0,100.0,1,no
+230301,张三,linear_equation,1.0,1.0,100.0,1,no
+230302,李四,function_concept,0.0,2.0,0.0,1,yes
+230302,李四,geometry_area,0.0,1.0,0.0,1,yes
+230302,李四,linear_equation,0.0,1.0,0.0,1,yes
+230999,UNMATCHED_230999,function_concept,0.0,2.0,0.0,1,yes
+230999,UNMATCHED_230999,geometry_area,0.0,1.0,0.0,1,yes
+230999,UNMATCHED_230999,linear_equation,1.0,1.0,100.0,1,no

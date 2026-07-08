@@ -1,0 +1,4 @@
+﻿student_id,name,score,max_score,percent,correct_count,wrong_or_partial_count,blank_count,invalid_count
+230301,张三,3.0,4.0,75.0,2,1,0,0
+230302,李四,0.0,4.0,0.0,0,3,0,0
+230999,UNMATCHED_230999,1.0,4.0,25.0,1,2,0,0

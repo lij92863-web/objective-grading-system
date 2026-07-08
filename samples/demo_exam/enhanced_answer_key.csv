@@ -1,0 +1,8 @@
+question,answer,points,partial_credit,partial_points,tags,difficulty,answer_aliases,tolerance,status
+1,A,5,false,,single_choice,1,,,normal
+2,BD,6,true,,multi_two,3,,,normal
+3,ABD,6,true,,multi_three,4,,,normal
+4,A,5,false,,cancelled_topic,2,,,cancelled
+5,A,5,false,,bonus_topic,2,,,bonus_all
+6,A,5,false,,answered_bonus_topic,2,,,bonus_if_answered
+7,1/2,5,false,,blank_alias,2,0.5;\frac{1}{2},0.001,normal

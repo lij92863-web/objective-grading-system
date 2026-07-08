@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>客观题批改助手</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <div class="brand">客观题批改助手</div>
+        <div class="brand-subtitle">批改、学情分析与讲评准备</div>
+      </div>
+      <div class="topbar-actions">
+        <span id="currentContext" class="context-pill">本地运行</span>
+        <button class="ghost-button" data-view="help">帮助</button>
+      </div>
+    </header>
+
+    <aside class="sidebar" aria-label="主导航">
+      <button class="nav-item active" data-view="home"><span class="nav-dot"></span>首页工作台</button>
+      <button class="nav-item" data-view="classes"><span class="nav-dot"></span>班级管理</button>
+      <button class="nav-item" data-view="newExam"><span class="nav-dot"></span>新建考试</button>
+      <button class="nav-item" data-view="history"><span class="nav-dot"></span>历史考试</button>
+      <button class="nav-item" data-view="reports"><span class="nav-dot"></span>报告中心</button>
+    </aside>
+
+    <main class="content">
+      <section id="home" class="view active-view">
+        <div class="page-head">
+          <h1>客观题批改助手</h1>
+          <p>快速完成批改、班级学情分析与讲评准备。</p>
+        </div>
+        <div class="quick-grid">
+          <article class="action-card">
+            <div class="card-symbol">＋</div>
+            <h2>新建一次批改</h2>
+            <p>按步骤导入答案和学生作答，系统会先帮你检查问题。</p>
+            <button class="primary-button" data-view="newExam">开始新建</button>
+          </article>
+          <article class="action-card">
+            <div class="card-symbol">名</div>
+            <h2>管理班级名单</h2>
+            <p>导入或查看班级学生名单，减少学号匹配错误。</p>
+            <button class="secondary-button" data-view="classes">打开名单</button>
+          </article>
+          <article class="action-card">
+            <div class="card-symbol">史</div>
+            <h2>查看最近考试</h2>
+            <p>回看已经完成的批改结果和报告。</p>
+            <button class="secondary-button" data-view="history">查看历史</button>
+          </article>
+          <article class="action-card">
+            <div class="card-symbol">报</div>
+            <h2>打开报告中心</h2>
+            <p>集中打开讲评计划、班级补救和分层补救建议。</p>
+            <button class="secondary-button" data-view="reports">进入报告</button>
+          </article>
+        </div>
+        <section class="soft-panel">
+          <div class="section-title-row">
+            <h2>最近考试记录</h2>
+            <button class="text-button" id="refreshHomeHistory">刷新</button>
+          </div>
+          <div id="recentExamList" class="exam-list skeleton-lines"></div>
+        </section>
+        <section class="steps-hint">
+          <h2>推荐操作顺序</h2>
+          <ol>
+            <li>先导入班级名单</li>
+            <li>新建考试并填写考试信息</li>
+            <li>导入标准答案与学生作答</li>
+            <li>检查未匹配学生和数据提醒</li>
+            <li>开始批改并查看讲评建议</li>
+          </ol>
+        </section>
+      </section>
+
+      <section id="classes" class="view">
+        <div class="page-head">
+          <h1>班级管理</h1>
+          <p>导入、查看和维护班级学生名单。</p>
+        </div>
+        <div class="toolbar-panel">
+          <form id="classImportForm" class="inline-form">
+            <label>
+              班级名称
+              <input name="class_name" type="text" placeholder="例如：高二3班" required>
+            </label>
+            <label>
+              学生名单
+              <input name="roster" type="file" accept=".csv,.xlsx" required>
+            </label>
+            <button class="primary-button" type="submit">导入名单</button>
+            <a class="secondary-link" href="/api/classes/template">下载名单模板</a>
+          </form>
+        </div>
+        <div class="class-layout">
+          <aside class="soft-panel class-list-panel">
+            <div class="section-title-row">
+              <h2>班级列表</h2>
+              <button class="text-button" id="refreshClasses">刷新</button>
+            </div>
+            <div id="classList" class="class-list"></div>
+          </aside>
+          <section class="soft-panel class-detail-panel">
+            <div class="section-title-row">
+              <div>
+                <h2 id="classDetailTitle">请选择一个班级</h2>
+                <p id="classDetailMeta">点击左侧班级后可查看学生名单。</p>
+              </div>
+              <input id="studentSearch" class="search-input" type="search" placeholder="搜索学生">
+            </div>
+            <div id="studentTable" class="table-wrap empty-state">暂无班级数据</div>
+          </section>
+        </div>
+      </section>
+
+      <section id="newExam" class="view">
+        <div class="page-head">
+          <h1>新建考试</h1>
+          <p>一步一步完成导入、检查和批改。</p>
+        </div>
+        <div class="wizard">
+          <div id="stepper" class="stepper"></div>
+          <form id="examWizard" class="wizard-body">
+            <section class="wizard-step active-step" data-step="0">
+              <h2>第 1 步：考试信息</h2>
+              <p>先选择班级，并填写本次考试的基本信息。</p>
+              <div class="form-grid">
+                <label>选择班级<select name="class_name" id="examClassSelect" required></select></label>
+                <label>考试名称<input name="exam_name" type="text" placeholder="例如：5月月考客观题" required></label>
+                <label>考试日期<input name="exam_date" type="date" required></label>
+                <label>科目<input name="subject" type="text" placeholder="例如：数学"></label>
+              </div>
+            </section>
+            <section class="wizard-step" data-step="1">
+              <div class="section-title-row">
+                <div>
+                  <h2>第 2 步：导入或填写标准答案</h2>
+                  <p>系统会先生成草稿，请您确认后才会用于正式批改。</p>
+                </div>
+                <button class="secondary-button" type="button" data-view="help">查看模板与示例</button>
+              </div>
+              <div class="source-card-grid">
+                <article class="source-card active" data-answer-mode="table">
+                  <strong>上传表格</strong>
+                  <span>适合已有 Excel / CSV 标准答案。</span>
+                  <small>.xlsx .xls .csv</small>
+                </article>
+                <article class="source-card" data-answer-mode="document">
+                  <strong>上传 Word / PDF</strong>
+                  <span>适合答案在试卷或文档中。</span>
+                  <small>.docx .pdf</small>
+                </article>
+                <article class="source-card" data-answer-mode="image">
+                  <strong>拍照 / 上传图片</strong>
+                  <span>适合纸质答案、扫描件或图片。</span>
+                  <small>.jpg .jpeg .png .webp</small>
+                </article>
+                <article class="source-card" data-answer-mode="manual">
+                  <strong>手动填写</strong>
+                  <span>适合题量不多的小测。</span>
+                  <small>可粘贴：1.A 2.B 3.CD</small>
+                </article>
+              </div>
+              <div id="answerUploadPanel" class="answer-panel">
+                <label class="file-drop">选择标准答案来源<input id="answerSourceFile" name="answer_source" type="file" accept=".xlsx,.xls,.csv,.docx,.pdf,.jpg,.jpeg,.png,.webp"></label>
+                <textarea id="manualAnswerText" class="manual-text hidden" placeholder="例如：&#10;1.A&#10;2.B&#10;3.CD"></textarea>
+                <label class="file-drop optional">题库文件（可选，用于补救推荐）<input name="question_bank" type="file" accept=".csv,.xlsx"></label>
+                <button id="parseAnswerButton" class="secondary-button" type="button">生成标准答案草稿</button>
+              </div>
+              <div id="answerDraftArea" class="answer-draft hidden">
+                <div class="section-title-row">
+                  <div>
+                    <h2>标准答案确认表</h2>
+                    <p>系统已根据文件生成标准答案草稿，请您检查黄色标记的内容。</p>
+                  </div>
+                  <div class="button-row">
+                    <button id="addAnswerRow" class="secondary-button" type="button">手动添加题目</button>
+                    <button id="confirmAnswerButton" class="primary-button" type="button">确认标准答案</button>
+                  </div>
+                </div>
+                <div id="answerWarnings" class="notice-list"></div>
+                <div id="answerReviewTable" class="editable-table"></div>
+              </div>
+            </section>
+            <section class="wizard-step" data-step="2">
+              <h2>第 3 步：导入学生作答</h2>
+              <p>可以上传表格，也可以用摄像头或手机摄像头拍照录入。</p>
+              <div class="source-card-grid two">
+                <article class="source-card active" data-submission-mode="file">
+                  <strong>上传学生作答文件</strong>
+                  <span>适合已有 Excel / CSV 或 recognized_submissions.csv。</span>
+                  <small>.xlsx .xls .csv</small>
+                </article>
+                <article class="source-card" data-submission-mode="camera">
+                  <strong>拍照录入答题卡</strong>
+                  <span>适合摄像头、高拍仪，或手机作为摄像头。</span>
+                  <small>拍照后先保存为草稿</small>
+                </article>
+              </div>
+              <div id="submissionFilePanel">
+                <label class="file-drop">学生作答文件<input name="submissions" type="file" accept=".csv,.xlsx,.xls"></label>
+              </div>
+              <div id="cameraPanel" class="camera-panel hidden">
+                <div class="section-title-row">
+                  <div>
+                    <h2>拍照录入答题卡</h2>
+                    <p>选择设备来源后打开摄像头，把答题卡放入取景框内拍照。</p>
+                  </div>
+                  <button id="backToUploadMode" class="secondary-button" type="button">返回上传文件模式</button>
+                </div>
+                <div class="source-card-grid two">
+                  <article class="source-card active" data-camera-mode="webcam">
+                    <strong>电脑 / 外接摄像头</strong>
+                    <span>适合 USB 摄像头、高拍仪或电脑自带摄像头。</span>
+                  </article>
+                  <article class="source-card" data-camera-mode="phone">
+                    <strong>手机摄像头</strong>
+                    <span>适合没有摄像头、希望用手机临时代替的老师。</span>
+                  </article>
+                </div>
+                <div id="cameraHelp" class="camera-help"></div>
+                <div class="camera-layout">
+                  <div class="camera-preview">
+                    <video id="cameraVideo" autoplay playsinline></video>
+                    <div class="answer-frame"></div>
+                    <div id="shutterFlash" class="shutter-flash"></div>
+                  </div>
+                  <aside class="camera-tools">
+                    <label>选择摄像头<select id="cameraSelect"></select></label>
+                    <button id="openCamera" class="primary-button" type="button">打开摄像头</button>
+                    <button id="switchCamera" class="secondary-button" type="button">切换摄像头</button>
+                    <button id="capturePhoto" class="primary-button" type="button">拍一张</button>
+                    <button id="closeCamera" class="secondary-button" type="button">关闭摄像头</button>
+                    <div id="captureCount" class="capture-count">已拍图片 0 张</div>
+                    <div id="thumbList" class="thumb-list"></div>
+                    <button id="uploadCaptures" class="secondary-button" type="button">保存拍照图片</button>
+                  </aside>
+                </div>
+              </div>
+              <div id="submissionPreview" class="preview-box">上传后会显示简单预览。</div>
+            </section>
+            <section class="wizard-step" data-step="3">
+              <h2>第 4 步：确认异常与匹配问题</h2>
+              <p>如果有阻塞错误，请先修改文件后重新上传；普通提醒可继续试算。</p>
+              <div id="validationArea" class="validation-grid">
+                <div class="empty-state">点击“检查数据”后显示结果。</div>
+              </div>
+              <button id="previewButton" class="secondary-button" type="button">检查数据</button>
+            </section>
+            <section class="wizard-step" data-step="4">
+              <h2>第 5 步：开始批改</h2>
+              <p>确认信息无误后开始批改。生成报告时请稍等片刻。</p>
+              <div id="gradeSummary" class="summary-strip"></div>
+              <button id="gradeButton" class="primary-button big-action" type="button" disabled>开始批改</button>
+              <label class="check-row"><input id="allowErrors" type="checkbox"> 我知道仍有提醒，仅生成试算报告</label>
+              <div id="loadingState" class="loading-state hidden"><span></span>正在生成报告，请稍候...</div>
+            </section>
+            <section class="wizard-step" data-step="5">
+              <h2>第 6 步：完成</h2>
+              <p>批改完成后，可以先查看讲评建议，再打开完整报告。</p>
+              <div id="resultSummary" class="result-grid"></div>
+            </section>
+            <div class="wizard-actions">
+              <button id="prevStep" class="secondary-button" type="button">上一步</button>
+              <button id="nextStep" class="primary-button" type="button">下一步</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section id="history" class="view">
+        <div class="page-head">
+          <h1>历史考试</h1>
+          <p>查找、回看和重新打开已有报告。</p>
+        </div>
+        <div class="toolbar-panel">
+          <input id="historySearch" class="search-input wide" type="search" placeholder="搜索考试名称或班级">
+          <button class="primary-button" id="refreshHistory">刷新历史</button>
+        </div>
+        <div id="historyList" class="exam-list"></div>
+      </section>
+
+      <section id="reports" class="view">
+        <div class="page-head">
+          <h1>报告中心</h1>
+          <p>优先查看“讲评计划”和“班级补救”，再看完整数据。</p>
+        </div>
+        <div id="reportList" class="report-grid"></div>
+      </section>
+
+      <section id="help" class="view">
+        <div class="page-head">
+          <h1>设置 / 帮助</h1>
+          <p>本页面运行在本机，文件保存在当前项目目录。</p>
+        </div>
+        <div class="soft-panel help-panel">
+          <h2>模板与示例</h2>
+          <p>
+            <a href="/api/classes/template">下载班级名单模板</a>　
+            <a href="/api/templates/answer">下载标准答案模板</a>　
+            <a href="/api/templates/submissions">下载学生作答模板</a>
+          </p>
+          <p>标准答案和学生作答表建议包含题号列，例如 Q1、Q2、Q3。</p>
+          <h2>Word / PDF 导入说明</h2>
+          <p>Word 和文本型 PDF 会先在本机提取文字，再生成草稿；扫描版 PDF 或图片会提示进入人工确认流程。</p>
+          <h2>拍照录入说明</h2>
+          <p>摄像头、高拍仪和手机摄像头都由浏览器调用电脑已经识别出的摄像头设备。软件不会直接控制手机。</p>
+          <h2>文件要求</h2>
+          <p>学生名单至少包含 student_id 和 name 两列。标准答案使用 answer_key.csv，学生作答使用 submissions.csv。</p>
+          <h2>遇到阻塞错误怎么办</h2>
+          <p>按照页面提示修改题号、答案、学生学号或缺失列，然后重新上传检查。</p>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+﻿section,metric,value,extra
+exam,exam_name,web_demo,
+exam,class_name,demo_class,
+exam,subject,math,
+exam,exam_date,2026-05-27,
+score,student_count,3,
+score,max_score,4.0,
+score,average,2.33,
+score,median,2.0,
+score,highest,3.0,
+score,lowest,2.0,
+score,pass_rate,33.33,percent >= 60
+score,excellent_rate,0.0,percent >= 90
+score,low_score_rate,66.67,percent < 60
+score_band,90%-100%,0,0.0%
+score_band,80%-89%,0,0.0%
+score_band,70%-79%,1,33.33%
+score_band,60%-69%,0,0.0%
+score_band,below_60%,2,66.67%
+knowledge,function_concept,66.67,weak_students=2
+knowledge,geometry_area,33.33,weak_students=2
+knowledge,linear_equation,66.67,weak_students=1
+item,Q1,66.67,"tags=linear_equation;blank_rate=0.0;wrong_rate=33.33;partial_rate=0.0;option_distribution={""A"": 2, ""B"": 1}"
+item,Q2,33.33,"tags=function_concept;blank_rate=0.0;wrong_rate=0.0;partial_rate=66.67;option_distribution={""B"": 1, ""BD"": 1, ""D"": 1}"
+item,Q3,33.33,"tags=geometry_area;blank_rate=33.33;wrong_rate=33.33;partial_rate=0.0;option_distribution={""C"": 1, ""(blank)"": 1, ""A"": 1}"

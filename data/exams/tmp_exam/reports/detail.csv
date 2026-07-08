@@ -1,0 +1,25 @@
+﻿student_id,name,question,question_id,difficulty,tags,expected,actual,score,max_score,status
+S001,Student One,1,,2,集合运算,A,A,5.0,5.0,correct
+S001,Student One,2,,3,函数概念,B,B,5.0,5.0,correct
+S001,Student One,3,,1,三角函数,C,C,5.0,5.0,correct
+S001,Student One,4,,2,数列基础,D,D,5.0,5.0,correct
+S001,Student One,5,,3,不等式,A,A,5.0,5.0,correct
+S001,Student One,6,,1,解析几何,B,B,5.0,5.0,correct
+S001,Student One,7,,2,概率统计,C,C,5.0,5.0,correct
+S001,Student One,8,,3,向量,D,D,5.0,5.0,correct
+S001,Student One,9,,3,函数性质,AC,AC,5.0,5.0,correct
+S001,Student One,10,,3,导数基础,BD,BD,5.0,5.0,correct
+S001,Student One,11,,2,计算能力,2,2,5.0,5.0,correct
+S001,Student One,12,,2,方程求解,4,4,5.0,5.0,correct
+S002,Student Two,1,,2,集合运算,A,B,0.0,5.0,wrong
+S002,Student Two,2,,3,函数概念,B,B,5.0,5.0,correct
+S002,Student Two,3,,1,三角函数,C,C,5.0,5.0,correct
+S002,Student Two,4,,2,数列基础,D,A,0.0,5.0,wrong
+S002,Student Two,5,,3,不等式,A,A,5.0,5.0,correct
+S002,Student Two,6,,1,解析几何,B,C,0.0,5.0,wrong
+S002,Student Two,7,,2,概率统计,C,C,5.0,5.0,correct
+S002,Student Two,8,,3,向量,D,D,5.0,5.0,correct
+S002,Student Two,9,,3,函数性质,AC,A,2.5,5.0,partial
+S002,Student Two,10,,3,导数基础,BD,BD,5.0,5.0,correct
+S002,Student Two,11,,2,计算能力,2,2,5.0,5.0,correct
+S002,Student Two,12,,2,方程求解,4,,0.0,5.0,blank

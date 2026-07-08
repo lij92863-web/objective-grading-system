@@ -1,0 +1,15 @@
+{
+  "input_files": {
+    "paper": "paper.pdf",
+    "answer": "answer.pdf"
+  },
+  "recognized_question_count": 14,
+  "recognized_auto_gradable_count": 12,
+  "recognized_manual_grade_count": 2,
+  "total_score": 90,
+  "confidence_average": 0.9,
+  "warnings": [
+    "第13-14题为解答题，暂不自动批改"
+  ],
+  "needs_teacher_review": true
+}

@@ -1,0 +1,17 @@
+{
+  "exam_name": "demo_exam",
+  "class_name": "demo_class",
+  "subject": "math",
+  "exam_date": "2026-05-27",
+  "run_id": "20260527_210504",
+  "created_at": "2026-05-27T21:05:05",
+  "source_files": {
+    "answer_key": "C:\\Users\\Administrator\\Desktop\\客观题批改\\web_data\\uploads\\634dbf8b92b9\\answer_key_sample.csv",
+    "submissions": "C:\\Users\\Administrator\\Desktop\\客观题批改\\web_data\\uploads\\634dbf8b92b9\\submissions_sample.csv",
+    "question_bank": "C:\\Users\\Administrator\\Desktop\\客观题批改\\web_data\\uploads\\634dbf8b92b9\\question_bank_sample.csv"
+  },
+  "student_count": 3,
+  "question_count": 3,
+  "blocked": false,
+  "allow_errors": false
+}

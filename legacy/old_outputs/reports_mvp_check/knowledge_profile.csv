@@ -1,0 +1,10 @@
+﻿student_id,name,tag,score,max_score,mastery,mastery_level,question_count,weak
+S001,Student One,function_concept,1.0,2.0,50.0,明显薄弱,1,yes
+S001,Student One,geometry_area,1.0,1.0,100.0,掌握较好,1,no
+S001,Student One,linear_equation,1.0,1.0,100.0,掌握较好,1,no
+S002,Student Two,function_concept,2.0,2.0,100.0,掌握较好,1,no
+S002,Student Two,geometry_area,0.0,1.0,0.0,严重薄弱,1,yes
+S002,Student Two,linear_equation,0.0,1.0,0.0,严重薄弱,1,yes
+S003,Student Three,function_concept,1.0,2.0,50.0,明显薄弱,1,yes
+S003,Student Three,geometry_area,0.0,1.0,0.0,严重薄弱,1,yes
+S003,Student Three,linear_equation,1.0,1.0,100.0,掌握较好,1,no

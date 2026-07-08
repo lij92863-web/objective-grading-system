@@ -1,0 +1,31 @@
+"""Grading core: models, answer normalization, scoring, and student grading."""
+
+from legacy.objective_grader_legacy import (  # noqa: F401
+    AnswerKey,
+    BankQuestion,
+    CHOICE_OPTIONS,
+    ExamMeta,
+    KnowledgeProfile,
+    QUESTION_STATUSES,
+    QuestionResult,
+    QuestionSpec,
+    StudentResult,
+    Submission,
+    allowed_options,
+    competition_ranks,
+    format_answer,
+    format_expected_answer,
+    grade_all,
+    grade_submission,
+    is_choice_answer,
+    is_choice_like_answer,
+    load_answer_key,
+    load_question_bank,
+    load_submissions,
+    matches_text_answer,
+    normalize_answer,
+    normalize_text_answer,
+    parse_question_number,
+    score_answer,
+)
+

@@ -1,0 +1,5 @@
+question_id,stem,answer,tags,difficulty
+B001,Solve a basic linear equation.,A,linear_equation,1
+B002,Choose an equivalent equation form.,C,linear_equation,2
+B003,Identify the correct function statements.,BD,function_concept,3
+B004,Find the area from the given dimensions.,C,geometry_area,2

@@ -1,0 +1,5 @@
+student_id,name,Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q99
+S001,Student One,A,BD,ABD,B,,B,0.5,A
+S002,Student Two,B,B,A,A,C,,\frac{1}{2},
+S003,Student Three,AB,D,AC,,D,A,0.5004,
+S004,Student Four,A,BCD,ABCD,A,,C,1/3,

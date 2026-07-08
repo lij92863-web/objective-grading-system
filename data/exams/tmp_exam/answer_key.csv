@@ -1,0 +1,13 @@
+﻿question,answer,points,partial_credit,partial_points,tags,difficulty
+1,A,5,false,,集合运算,2
+2,B,5,false,,函数概念,3
+3,C,5,false,,三角函数,1
+4,D,5,false,,数列基础,2
+5,A,5,false,,不等式,3
+6,B,5,false,,解析几何,1
+7,C,5,false,,概率统计,2
+8,D,5,false,,向量,3
+9,AC,5,true,,函数性质,3
+10,BD,5,true,,导数基础,3
+11,2,5,false,,计算能力,2
+12,4,5,false,,方程求解,2

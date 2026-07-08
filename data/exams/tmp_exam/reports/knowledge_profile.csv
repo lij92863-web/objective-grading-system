@@ -1,0 +1,25 @@
+﻿student_id,name,tag,score,max_score,mastery,question_count,weak
+S001,Student One,三角函数,5.0,5.0,100.0,1,no
+S001,Student One,不等式,5.0,5.0,100.0,1,no
+S001,Student One,函数性质,5.0,5.0,100.0,1,no
+S001,Student One,函数概念,5.0,5.0,100.0,1,no
+S001,Student One,向量,5.0,5.0,100.0,1,no
+S001,Student One,导数基础,5.0,5.0,100.0,1,no
+S001,Student One,数列基础,5.0,5.0,100.0,1,no
+S001,Student One,方程求解,5.0,5.0,100.0,1,no
+S001,Student One,概率统计,5.0,5.0,100.0,1,no
+S001,Student One,解析几何,5.0,5.0,100.0,1,no
+S001,Student One,计算能力,5.0,5.0,100.0,1,no
+S001,Student One,集合运算,5.0,5.0,100.0,1,no
+S002,Student Two,三角函数,5.0,5.0,100.0,1,no
+S002,Student Two,不等式,5.0,5.0,100.0,1,no
+S002,Student Two,函数性质,2.5,5.0,50.0,1,yes
+S002,Student Two,函数概念,5.0,5.0,100.0,1,no
+S002,Student Two,向量,5.0,5.0,100.0,1,no
+S002,Student Two,导数基础,5.0,5.0,100.0,1,no
+S002,Student Two,数列基础,0.0,5.0,0.0,1,yes
+S002,Student Two,方程求解,0.0,5.0,0.0,1,yes
+S002,Student Two,概率统计,5.0,5.0,100.0,1,no
+S002,Student Two,解析几何,0.0,5.0,0.0,1,yes
+S002,Student Two,计算能力,5.0,5.0,100.0,1,no
+S002,Student Two,集合运算,0.0,5.0,0.0,1,yes

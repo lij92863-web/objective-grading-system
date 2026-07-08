@@ -1,0 +1,37 @@
+﻿section,metric,value,extra
+exam,exam_name,demo_exam,
+exam,class_name,,
+exam,subject,,
+exam,exam_date,2026-05-22,
+score,student_count,2,
+score,max_score,60.0,
+score,average,48.75,
+score,median,48.75,
+score,highest,60.0,
+score,lowest,37.5,
+score,pass_rate,100.0,percent >= 60
+score,excellent_rate,50.0,percent >= 90
+knowledge,三角函数,100.0,weak_students=0
+knowledge,不等式,100.0,weak_students=0
+knowledge,函数性质,75.0,weak_students=1
+knowledge,函数概念,100.0,weak_students=0
+knowledge,向量,100.0,weak_students=0
+knowledge,导数基础,100.0,weak_students=0
+knowledge,数列基础,50.0,weak_students=1
+knowledge,方程求解,50.0,weak_students=1
+knowledge,概率统计,100.0,weak_students=0
+knowledge,解析几何,50.0,weak_students=1
+knowledge,计算能力,100.0,weak_students=0
+knowledge,集合运算,50.0,weak_students=1
+item,Q1,50.0,tags=集合运算
+item,Q2,100.0,tags=函数概念
+item,Q3,100.0,tags=三角函数
+item,Q4,50.0,tags=数列基础
+item,Q5,100.0,tags=不等式
+item,Q6,50.0,tags=解析几何
+item,Q7,100.0,tags=概率统计
+item,Q8,100.0,tags=向量
+item,Q9,50.0,tags=函数性质
+item,Q10,100.0,tags=导数基础
+item,Q11,100.0,tags=计算能力
+item,Q12,50.0,tags=方程求解

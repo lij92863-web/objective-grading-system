@@ -1,0 +1,13 @@
+{
+  "exam_name": "测试考试",
+  "class_name": "高二3班",
+  "subject": "数学",
+  "exam_date": "2026-05-23",
+  "student_count_in_roster": 2,
+  "submission_count": 3,
+  "matched_count": 2,
+  "unmatched_count": 1,
+  "answer_key_path": "answer_key.csv",
+  "submissions_path": "submissions.csv",
+  "created_at": "2026-05-23T00:36:30"
+}

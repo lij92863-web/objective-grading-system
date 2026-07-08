@@ -1,0 +1,258 @@
+﻿{
+    "exam_name":  "函数周测",
+    "class_name":  "高二3班",
+    "subject":  "数学",
+    "exam_date":  "2026-05-22",
+    "total_score":  90,
+    "question_count":  14,
+    "auto_gradable_count":  12,
+    "manual_grade_count":  2,
+    "questions":  [
+                      {
+                          "question":  1,
+                          "type":  "single_choice",
+                          "display_type":  "单选题",
+                          "points":  5,
+                          "answer":  "",
+                          "auto_gradable":  true,
+                          "tags":  [
+                                       "集合运算"
+                                   ],
+                          "difficulty":  2,
+                          "confidence":  0.95,
+                          "source":  "mock_recognition",
+                          "warnings":  [
+
+                                       ]
+                      },
+                      {
+                          "question":  2,
+                          "type":  "single_choice",
+                          "display_type":  "单选题",
+                          "points":  5,
+                          "answer":  "B",
+                          "auto_gradable":  true,
+                          "tags":  [
+                                       "函数概念"
+                                   ],
+                          "difficulty":  3,
+                          "confidence":  0.95,
+                          "source":  "mock_recognition",
+                          "warnings":  [
+
+                                       ]
+                      },
+                      {
+                          "question":  3,
+                          "type":  "single_choice",
+                          "display_type":  "单选题",
+                          "points":  5,
+                          "answer":  "C",
+                          "auto_gradable":  true,
+                          "tags":  [
+                                       "三角函数"
+                                   ],
+                          "difficulty":  1,
+                          "confidence":  0.95,
+                          "source":  "mock_recognition",
+                          "warnings":  [
+
+                                       ]
+                      },
+                      {
+                          "question":  4,
+                          "type":  "single_choice",
+                          "display_type":  "单选题",
+                          "points":  5,
+                          "answer":  "D",
+                          "auto_gradable":  true,
+                          "tags":  [
+                                       "数列基础"
+                                   ],
+                          "difficulty":  2,
+                          "confidence":  0.95,
+                          "source":  "mock_recognition",
+                          "warnings":  [
+
+                                       ]
+                      },
+                      {
+                          "question":  5,
+                          "type":  "single_choice",
+                          "display_type":  "单选题",
+                          "points":  5,
+                          "answer":  "A",
+                          "auto_gradable":  true,
+                          "tags":  [
+                                       "不等式"
+                                   ],
+                          "difficulty":  3,
+                          "confidence":  0.95,
+                          "source":  "mock_recognition",
+                          "warnings":  [
+
+                                       ]
+                      },
+                      {
+                          "question":  6,
+                          "type":  "single_choice",
+                          "display_type":  "单选题",
+                          "points":  5,
+                          "answer":  "B",
+                          "auto_gradable":  true,
+                          "tags":  [
+                                       "解析几何"
+                                   ],
+                          "difficulty":  1,
+                          "confidence":  0.95,
+                          "source":  "mock_recognition",
+                          "warnings":  [
+
+                                       ]
+                      },
+                      {
+                          "question":  7,
+                          "type":  "single_choice",
+                          "display_type":  "单选题",
+                          "points":  5,
+                          "answer":  "C",
+                          "auto_gradable":  true,
+                          "tags":  [
+                                       "概率统计"
+                                   ],
+                          "difficulty":  2,
+                          "confidence":  0.95,
+                          "source":  "mock_recognition",
+                          "warnings":  [
+
+                                       ]
+                      },
+                      {
+                          "question":  8,
+                          "type":  "single_choice",
+                          "display_type":  "单选题",
+                          "points":  5,
+                          "answer":  "D",
+                          "auto_gradable":  true,
+                          "tags":  [
+                                       "向量"
+                                   ],
+                          "difficulty":  3,
+                          "confidence":  0.95,
+                          "source":  "mock_recognition",
+                          "warnings":  [
+
+                                       ]
+                      },
+                      {
+                          "question":  9,
+                          "type":  "multiple_choice",
+                          "display_type":  "多选题",
+                          "points":  5,
+                          "answer":  "AC",
+                          "auto_gradable":  true,
+                          "tags":  [
+                                       "函数性质"
+                                   ],
+                          "difficulty":  3,
+                          "confidence":  0.88,
+                          "source":  "mock_recognition",
+                          "warnings":  [
+
+                                       ]
+                      },
+                      {
+                          "question":  10,
+                          "type":  "multiple_choice",
+                          "display_type":  "多选题",
+                          "points":  5,
+                          "answer":  "BD",
+                          "auto_gradable":  true,
+                          "tags":  [
+                                       "导数基础"
+                                   ],
+                          "difficulty":  3,
+                          "confidence":  0.88,
+                          "source":  "mock_recognition",
+                          "warnings":  [
+
+                                       ]
+                      },
+                      {
+                          "question":  11,
+                          "type":  "blank",
+                          "display_type":  "填空题",
+                          "points":  5,
+                          "answer":  "2",
+                          "auto_gradable":  true,
+                          "tags":  [
+                                       "计算能力"
+                                   ],
+                          "difficulty":  2,
+                          "confidence":  0.84,
+                          "source":  "mock_recognition",
+                          "warnings":  [
+
+                                       ]
+                      },
+                      {
+                          "question":  12,
+                          "type":  "blank",
+                          "display_type":  "填空题",
+                          "points":  5,
+                          "answer":  "4",
+                          "auto_gradable":  true,
+                          "tags":  [
+                                       "方程求解"
+                                   ],
+                          "difficulty":  2,
+                          "confidence":  0.84,
+                          "source":  "mock_recognition",
+                          "warnings":  [
+
+                                       ]
+                      },
+                      {
+                          "question":  13,
+                          "type":  "solution",
+                          "display_type":  "解答题",
+                          "points":  15,
+                          "answer":  "",
+                          "auto_gradable":  false,
+                          "tags":  [
+                                       "导数综合"
+                                   ],
+                          "difficulty":  4,
+                          "confidence":  0.76,
+                          "source":  "mock_recognition",
+                          "warnings":  [
+                                           "解答题暂不自动批改"
+                                       ]
+                      },
+                      {
+                          "question":  14,
+                          "type":  "solution",
+                          "display_type":  "解答题",
+                          "points":  15,
+                          "answer":  "",
+                          "auto_gradable":  false,
+                          "tags":  [
+                                       "函数综合"
+                                   ],
+                          "difficulty":  4,
+                          "confidence":  0.76,
+                          "source":  "mock_recognition",
+                          "warnings":  [
+                                           "解答题暂不自动批改"
+                                       ]
+                      }
+                  ],
+    "warnings":  [
+                     "第13-14题为解答题，暂不自动批改"
+                 ],
+    "needs_teacher_review":  true,
+    "created_at":  "2026-05-22T23:38:29",
+    "recognition_mode":  "mock",
+    "confirmed_at":  "2026-05-22T23:38:34",
+    "confirmation_method":  "cli_copy_after_teacher_review"
+}

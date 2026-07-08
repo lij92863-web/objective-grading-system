@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>普通版报告 - demo_exam</title><style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",Arial,sans-serif;margin:0;background:#f6f7f9;color:#20242a}
+main{max-width:1180px;margin:0 auto;padding:28px}
+h1{font-size:28px;margin:0 0 8px} h2{font-size:18px;margin:28px 0 12px}
+.muted{color:#667085}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat,.panel{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px}
+.stat b{display:block;font-size:24px;margin-top:6px}.actions{margin:18px 0}
+a.button{display:inline-block;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;padding:10px 14px}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden}
+th,td{border-bottom:1px solid #edf0f3;padding:8px 10px;text-align:left;font-size:14px}th{background:#f1f5f9}
+.bar-row{display:grid;grid-template-columns:90px 1fr 64px;gap:10px;align-items:center;margin:8px 0}
+.bar-track{height:14px;background:#e5e7eb;border-radius:999px;overflow:hidden}.bar-fill{height:100%;background:#2563eb}
+.warn{background:#fff7ed;border-color:#fed7aa}.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){main{padding:16px}.two{grid-template-columns:1fr}th,td{font-size:12px;padding:6px}.bar-row{grid-template-columns:70px 1fr 52px}}
+</style></head>
+<body><main>
+<h1>普通版报告</h1><p class="muted">demo_exam · 未填写班级 · 2026-05-23</p>
+<div class="actions"><a class="button" href="simple_score_report.xlsx">导出简单 Excel 成绩表</a></div>
+<section class="grid">
+<div class="stat">参考人数<b>3</b></div>
+<div class="stat">平均分<b>2.33</b></div>
+<div class="stat">最高分<b>3.0</b></div>
+<div class="stat">最低分<b>2.0</b></div>
+<div class="stat">及格率<b>33.33%</b></div>
+<div class="stat">优秀率<b>0.00%</b></div>
+</section>
+<h2>学生成绩表</h2><table><thead><tr><th>rank</th><th>student_id</th><th>name</th><th>score</th><th>max_score</th><th>percent</th><th>correct_count</th><th>wrong_or_partial_count</th><th>blank_count</th><th>wrong_questions</th></tr></thead><tbody><tr><td>1</td><td>S001</td><td>Student One</td><td>3.0</td><td>4.0</td><td>75.0</td><td>2</td><td>1</td><td>0</td><td></td></tr><tr><td>2</td><td>S002</td><td>Student Two</td><td>2.0</td><td>4.0</td><td>50.0</td><td>1</td><td>1</td><td>1</td><td>1</td></tr><tr><td>2</td><td>S003</td><td>Student Three</td><td>2.0</td><td>4.0</td><td>50.0</td><td>1</td><td>2</td><td>0</td><td>3</td></tr></tbody></table>
+<section class="two"><div><h2>每题正确率</h2><div class="panel"><div class="bar-row"><span>Q1</span><div class="bar-track"><div class="bar-fill" style="width:66.67%"></div></div><strong>66.67</strong></div><div class="bar-row"><span>Q2</span><div class="bar-track"><div class="bar-fill" style="width:33.33%"></div></div><strong>33.33</strong></div><div class="bar-row"><span>Q3</span><div class="bar-track"><div class="bar-fill" style="width:33.33%"></div></div><strong>33.33</strong></div></div></div><div><h2>每题正确率表</h2><table><thead><tr><th>题号</th><th>正确率</th><th>空白率</th></tr></thead><tbody><tr><td>Q1</td><td>66.67%</td><td>0.00%</td></tr><tr><td>Q2</td><td>33.33%</td><td>0.00%</td></tr><tr><td>Q3</td><td>33.33%</td><td>33.33%</td></tr></tbody></table></div></section>
+<h2>错得最多的题 Top 5</h2><table><thead><tr><th>题号</th><th>错误/部分得分人数</th><th>正确率</th><th>知识点</th></tr></thead><tbody><tr><td>Q2</td><td>2</td><td>33.33%</td><td>function_concept</td></tr><tr><td>Q1</td><td>1</td><td>66.67%</td><td>linear_equation</td></tr><tr><td>Q3</td><td>1</td><td>33.33%</td><td>geometry_area</td></tr></tbody></table>
+</main></body></html>

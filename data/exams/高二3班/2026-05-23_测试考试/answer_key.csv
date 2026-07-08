@@ -1,0 +1,4 @@
+question,question_id,answer,points,partial_credit,partial_points,tags,difficulty
+1,B001,A,1,false,,linear_equation,1
+2,B003,BD,2,true,1,function_concept,3
+3,B004,C,1,false,,geometry_area,2

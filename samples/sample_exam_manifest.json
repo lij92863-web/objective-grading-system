@@ -1,0 +1,53 @@
+{
+  "exam_name": "函数周测",
+  "class_name": "高二3班",
+  "subject": "数学",
+  "exam_date": "2026-05-22",
+  "total_score": 90,
+  "question_count": 14,
+  "auto_gradable_count": 12,
+  "manual_grade_count": 2,
+  "questions": [
+    {
+      "question": 1,
+      "type": "single_choice",
+      "display_type": "单选题",
+      "points": 5,
+      "answer": "A",
+      "auto_gradable": true,
+      "tags": ["集合运算"],
+      "difficulty": 1,
+      "confidence": 0.95,
+      "source": "mock_recognition",
+      "warnings": []
+    },
+    {
+      "question": 2,
+      "type": "multiple_choice",
+      "display_type": "多选题",
+      "points": 5,
+      "answer": "BD",
+      "auto_gradable": true,
+      "tags": ["函数性质"],
+      "difficulty": 3,
+      "confidence": 0.88,
+      "source": "mock_recognition",
+      "warnings": []
+    },
+    {
+      "question": 13,
+      "type": "solution",
+      "display_type": "解答题",
+      "points": 15,
+      "answer": "",
+      "auto_gradable": false,
+      "tags": ["导数综合"],
+      "difficulty": 4,
+      "confidence": 0.76,
+      "source": "mock_recognition",
+      "warnings": ["解答题暂不自动批改"]
+    }
+  ],
+  "warnings": [],
+  "needs_teacher_review": true
+}

@@ -86,6 +86,51 @@ class FakeClientTests(unittest.TestCase):
         resp = self.client.recognize_name_field(req)
         self.assertEqual(resp.model, "fake-qwen")
 
+    # -- one-shot injection semantics ----------------------------------------
+
+    def test_error_injection_is_one_shot(self):
+        self.client.inject_error("invalid_json")
+        # first call — injected error
+        req1 = QwenRequest(prompt_type=PROMPT_TYPE_NAME_FIELD, prompt="t1")
+        resp1 = self.client.recognize_name_field(req1)
+        self.assertIsNone(resp1.parsed_json)
+        # second call — reverts to default
+        req2 = QwenRequest(prompt_type=PROMPT_TYPE_NAME_FIELD, prompt="t2")
+        resp2 = self.client.recognize_name_field(req2)
+        self.assertIsNotNone(resp2.parsed_json)
+        self.assertIn("raw_text", resp2.parsed_json)
+
+    def test_custom_payload_is_one_shot(self):
+        self.client.inject_custom_payload({"raw_text": "only_once", "confidence": 1.0})
+        req1 = QwenRequest(prompt_type=PROMPT_TYPE_NAME_FIELD, prompt="t1")
+        resp1 = self.client.recognize_name_field(req1)
+        self.assertEqual(resp1.parsed_json["raw_text"], "only_once")
+        # second call reverts
+        req2 = QwenRequest(prompt_type=PROMPT_TYPE_NAME_FIELD, prompt="t2")
+        resp2 = self.client.recognize_name_field(req2)
+        self.assertEqual(resp2.parsed_json["raw_text"], "1李明")
+
+    def test_clear_injection_still_works(self):
+        self.client.inject_error("invalid_json")
+        self.client.clear_injection()
+        req = QwenRequest(prompt_type=PROMPT_TYPE_NAME_FIELD, prompt="test")
+        resp = self.client.recognize_name_field(req)
+        self.assertIsNotNone(resp.parsed_json)
+        self.assertIn("raw_text", resp.parsed_json)
+
+    def test_consecutive_error_injections(self):
+        self.client.inject_error("invalid_json")
+        self.client.inject_error("missing_field")
+        # only the LAST injection takes effect
+        req = QwenRequest(prompt_type=PROMPT_TYPE_NAME_FIELD, prompt="test")
+        resp = self.client.recognize_name_field(req)
+        self.assertIsNotNone(resp.parsed_json)
+        self.assertNotIn("raw_text", resp.parsed_json)
+        # next call back to default
+        req2 = QwenRequest(prompt_type=PROMPT_TYPE_NAME_FIELD, prompt="t2")
+        resp2 = self.client.recognize_name_field(req2)
+        self.assertIn("raw_text", resp2.parsed_json)
+
 
 if __name__ == "__main__":
     unittest.main()

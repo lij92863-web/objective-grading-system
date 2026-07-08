@@ -1,9 +1,8 @@
 """Qwen response parser — JSON parse + validation → QwenParsedResult."""
 
 import json
-from typing import Optional
 
-from .errors import QwenAdapterError, QwenAdapterErrorCode
+from .errors import QwenAdapterErrorCode
 from .models import QwenParsedResult, QwenRawResponse
 from .validators import get_validator
 
@@ -23,8 +22,11 @@ def parse_qwen_response(
         One of ``name_field``, ``choice_cell``, ``blank_answer``,
         ``complex_blank_judgment``.
     request_id:
-        For tracing.
+        Explicit request_id for tracing.  Falls back to
+        ``response.request_id``.
     """
+    resolved_id = request_id or response.request_id or ""
+
     errors: list[str] = []
     warnings: list[str] = []
 
@@ -37,6 +39,7 @@ def parse_qwen_response(
             data = json.loads(response.raw_text or "{}")
         except json.JSONDecodeError:
             return QwenParsedResult(
+                request_id=resolved_id,
                 prompt_type=prompt_type,
                 status="error",
                 errors=[QwenAdapterErrorCode.INVALID_JSON],
@@ -44,6 +47,7 @@ def parse_qwen_response(
             )
     if not isinstance(data, dict):
         return QwenParsedResult(
+            request_id=resolved_id,
             prompt_type=prompt_type,
             status="error",
             errors=[QwenAdapterErrorCode.INVALID_JSON],
@@ -53,6 +57,7 @@ def parse_qwen_response(
     validator = get_validator(prompt_type)
     if validator is None:
         return QwenParsedResult(
+            request_id=resolved_id,
             prompt_type=prompt_type,
             status="error",
             errors=[QwenAdapterErrorCode.UNSUPPORTED_PROMPT_TYPE],
@@ -69,6 +74,7 @@ def parse_qwen_response(
         pass
 
     return QwenParsedResult(
+        request_id=resolved_id,
         prompt_type=prompt_type,
         status="error" if errors else "ok",
         data=data,

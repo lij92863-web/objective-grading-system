@@ -50,13 +50,17 @@ def validate_name_field_response(data: dict) -> List[str]:
 def validate_choice_cell_response(data: dict) -> List[str]:
     """Validate a choice-cell recognition payload."""
     errors: List[str] = []
-    answer = str(data.get("answer", "")).strip().upper()
-    if not answer:
+    raw_answer = str(data.get("answer", "")).strip().upper()
+    if not raw_answer:
         errors.append(QwenAdapterErrorCode.MISSING_REQUIRED_FIELD)
     else:
-        valid_answers = {"A", "B", "C", "D", "AB", "AC", "AD", "BC", "BD", "CD",
-                         "ABC", "ABD", "ACD", "BCD", "ABCD", "BLANK", "UNCLEAR", "INVALID"}
-        if answer not in valid_answers:
+        # Normalise order (BA → AB) before checking against valid set.
+        # "blank", "unclear", "invalid" pass through unchanged.
+        if raw_answer in ("BLANK", "UNCLEAR", "INVALID"):
+            pass  # valid as-is
+        elif raw_answer and all(c in "ABCD" for c in raw_answer):
+            pass  # any A-D combination is valid
+        else:
             errors.append(QwenAdapterErrorCode.INVALID_VERDICT)
     _check_confidence(data, errors)
     return errors

@@ -164,6 +164,139 @@ class MappingTests(unittest.TestCase):
         self.assertEqual(judgment.verdict, "needs_review")
         self.assertTrue(judgment.requires_review)
 
+    # -- error guard: error results must not be mapped ------------------------
+
+    def test_error_result_raises_in_name_field_mapping(self):
+        from app.recognition.qwen_adapter.errors import QwenAdapterError
+        from app.recognition.qwen_adapter.models import QwenParsedResult
+
+        result = QwenParsedResult(
+            prompt_type=PROMPT_TYPE_NAME_FIELD,
+            status="error",
+            errors=["invalid_json"],
+        )
+        with self.assertRaises(QwenAdapterError) as ctx:
+            parse_name_field_to_identity_candidate(result)
+        self.assertIn("unsafe_response", ctx.exception.code)
+
+    def test_error_result_raises_in_choice_mapping(self):
+        from app.recognition.qwen_adapter.errors import QwenAdapterError
+        from app.recognition.qwen_adapter.models import QwenParsedResult
+
+        result = QwenParsedResult(
+            prompt_type=PROMPT_TYPE_CHOICE_CELL,
+            status="error",
+            errors=["invalid_confidence"],
+        )
+        with self.assertRaises(QwenAdapterError):
+            parse_choice_response_to_draft(result)
+
+    def test_error_result_raises_in_blank_mapping(self):
+        from app.recognition.qwen_adapter.errors import QwenAdapterError
+        from app.recognition.qwen_adapter.models import QwenParsedResult
+
+        result = QwenParsedResult(
+            prompt_type=PROMPT_TYPE_BLANK_ANSWER,
+            status="error",
+            errors=["missing_required_field"],
+        )
+        with self.assertRaises(QwenAdapterError):
+            parse_blank_response_to_draft(result)
+
+    def test_error_result_raises_in_judgment_mapping(self):
+        from app.recognition.qwen_adapter.errors import QwenAdapterError
+        from app.recognition.qwen_adapter.models import QwenParsedResult
+
+        result = QwenParsedResult(
+            prompt_type=PROMPT_TYPE_COMPLEX_BLANK_JUDGMENT,
+            status="error",
+            errors=["invalid_verdict"],
+        )
+        with self.assertRaises(QwenAdapterError):
+            parse_complex_judgment_response(result)
+
+    def test_non_ok_status_also_guarded(self):
+        from app.recognition.qwen_adapter.errors import QwenAdapterError
+        from app.recognition.qwen_adapter.models import QwenParsedResult
+
+        result = QwenParsedResult(
+            prompt_type=PROMPT_TYPE_NAME_FIELD,
+            status="partial",
+            data={"raw_text": "1李明", "confidence": 0.98},
+        )
+        with self.assertRaises(QwenAdapterError):
+            parse_name_field_to_identity_candidate(result)
+
+    # -- requires_review strict bool ------------------------------------------
+
+    def test_requires_review_string_false_raises(self):
+        from app.recognition.qwen_adapter.errors import QwenAdapterError
+        from app.recognition.qwen_adapter.models import QwenParsedResult
+
+        # "false" as a string — must NOT be silently True
+        result = QwenParsedResult(
+            prompt_type=PROMPT_TYPE_COMPLEX_BLANK_JUDGMENT,
+            status="ok",
+            data={
+                "verdict": "correct",
+                "confidence": 0.96,
+                "reason": "ok",
+                "normalized_standard": "x",
+                "normalized_student": "x",
+                "requires_review": "false",
+            },
+        )
+        with self.assertRaises(QwenAdapterError) as ctx:
+            parse_complex_judgment_response(result)
+        self.assertIn("requires_review", str(ctx.exception))
+
+    def test_requires_review_true_bool_is_fine(self):
+        result = QwenParsedResult(
+            prompt_type=PROMPT_TYPE_COMPLEX_BLANK_JUDGMENT,
+            status="ok",
+            data={
+                "verdict": "correct",
+                "confidence": 0.96,
+                "reason": "ok",
+                "normalized_standard": "x",
+                "normalized_student": "x",
+                "requires_review": True,
+            },
+        )
+        judgment = parse_complex_judgment_response(result)
+        self.assertTrue(judgment.requires_review)
+
+    def test_requires_review_false_bool_is_fine(self):
+        result = QwenParsedResult(
+            prompt_type=PROMPT_TYPE_COMPLEX_BLANK_JUDGMENT,
+            status="ok",
+            data={
+                "verdict": "correct",
+                "confidence": 0.96,
+                "reason": "ok",
+                "normalized_standard": "x",
+                "normalized_student": "x",
+                "requires_review": False,
+            },
+        )
+        judgment = parse_complex_judgment_response(result)
+        self.assertFalse(judgment.requires_review)
+
+    def test_requires_review_missing_defaults_to_true(self):
+        result = QwenParsedResult(
+            prompt_type=PROMPT_TYPE_COMPLEX_BLANK_JUDGMENT,
+            status="ok",
+            data={
+                "verdict": "correct",
+                "confidence": 0.96,
+                "reason": "ok",
+                "normalized_standard": "x",
+                "normalized_student": "x",
+            },
+        )
+        judgment = parse_complex_judgment_response(result)
+        self.assertTrue(judgment.requires_review)
+
 
 if __name__ == "__main__":
     unittest.main()

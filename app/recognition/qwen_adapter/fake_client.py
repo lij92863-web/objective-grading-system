@@ -91,7 +91,11 @@ class FakeQwenClient(QwenClient):
     # -- injection API ---------------------------------------------------------
 
     def inject_error(self, error_key: str) -> None:
-        """Cause the next call to return a known error response.
+        """Cause the **next single call** to return a known error response.
+
+        One-shot: the second call reverts to default presets.  Use
+        multiple ``inject_error`` calls in sequence if you need several
+        consecutive error responses.
 
         Valid keys: ``invalid_json``, ``missing_field``, ``invalid_verdict``,
         ``invalid_confidence``, ``empty_reason``, ``needs_review_true``.
@@ -99,7 +103,10 @@ class FakeQwenClient(QwenClient):
         self._error_injection = error_key
 
     def inject_custom_payload(self, payload: dict) -> None:
-        """Cause the next call to return a custom payload."""
+        """Cause the **next single call** to return *payload*.
+
+        One-shot: the second call reverts to default presets.
+        """
         self._custom_payload = payload
 
     def clear_injection(self) -> None:
@@ -109,16 +116,29 @@ class FakeQwenClient(QwenClient):
 
     # -- QwenClient implementation --------------------------------------------
 
+    def _consume_injections(self) -> tuple[Optional[str], Optional[dict]]:
+        """Pop and return current injections, resetting them to None.
+
+        One-shot semantics: each injection applies to exactly one call.
+        """
+        error_key = self._error_injection
+        payload = self._custom_payload
+        self._error_injection = None
+        self._custom_payload = None
+        return error_key, payload
+
     def _make_response(self, prompt_type: str, request: QwenRequest) -> QwenRawResponse:
-        """Build a response — preset, injected error, or custom."""
-        if self._error_injection is not None:
-            return self._build_error(request, self._error_injection)
-        if self._custom_payload is not None:
-            raw_text = json.dumps(self._custom_payload, ensure_ascii=False)
+        """Build a response — one-shot injection, then preset."""
+        error_key, payload = self._consume_injections()
+
+        if error_key is not None:
+            return self._build_error(request, error_key)
+        if payload is not None:
+            raw_text = json.dumps(payload, ensure_ascii=False)
             return QwenRawResponse(
                 request_id=request.request_id,
                 raw_text=raw_text,
-                parsed_json=self._custom_payload,
+                parsed_json=payload,
                 model="fake-qwen",
             )
         preset = _PRESET_DATA.get(prompt_type, _PRESET_CHOICE_CELL_RESPONSE)

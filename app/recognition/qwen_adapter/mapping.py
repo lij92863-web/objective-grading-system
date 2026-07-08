@@ -3,28 +3,51 @@
 Bridges the adapter-layer ``QwenParsedResult`` to the domain models in
 ``app.recognition.models`` so the existing pipeline can consume adapter
 output without change.
+
+Every mapping function enforces a hard gate: if ``result.status != "ok"``
+or ``result.errors`` is non-empty the function raises ``QwenAdapterError``
+with code ``unsafe_response``.  Error results must never be silently
+converted into drafts.
 """
 
-import dataclasses
 from typing import Optional
 
-from ..choice_mock import normalize_choice_recognition
-from ..blank_mock import normalize_blank_recognition
-from ..models import (
-    ChoiceCellOutput,
-    MockBlankOutput,
-    QwenJudgmentMock,
-    RecognizedAnswerDraft,
-    StudentIdentityCandidate,
-)
-from ..qwen_judgment_mock import should_auto_accept_qwen_judgment
-from .models import (
-    PROMPT_TYPE_BLANK_ANSWER,
-    PROMPT_TYPE_CHOICE_CELL,
-    PROMPT_TYPE_COMPLEX_BLANK_JUDGMENT,
-    PROMPT_TYPE_NAME_FIELD,
-    QwenParsedResult,
-)
+from .errors import QwenAdapterError, QwenAdapterErrorCode
+from .models import QwenParsedResult
+
+# Import domain models at function-call time to avoid circular imports
+# with the parent recognition package at module level.
+
+
+def _guard(result: QwenParsedResult, label: str = "") -> None:
+    """Raise ``QwenAdapterError`` if *result* is not safe to map."""
+    if result.status != "ok" or result.errors:
+        detail = {
+            "status": result.status,
+            "errors": result.errors,
+            "function": label,
+        }
+        raise QwenAdapterError(
+            QwenAdapterErrorCode.UNSAFE_RESPONSE,
+            f"Cannot map a failed/error result. status={result.status!r}, errors={result.errors}",
+            detail,
+        )
+
+
+def _safe_bool(value: object, default: bool = True) -> bool:
+    """Extract a strict bool from *value*.
+
+    ``bool("false")`` would be ``True`` in Python — we forbid that.
+    Returns *default* only when *value* is ``None``.
+    """
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    raise QwenAdapterError(
+        QwenAdapterErrorCode.INVALID_VERDICT,
+        f"requires_review must be a bool, got {type(value).__name__}: {value!r}",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -35,12 +58,10 @@ from .models import (
 def parse_name_field_to_identity_candidate(
     result: QwenParsedResult,
     roster: Optional[dict[str, str]] = None,
-) -> StudentIdentityCandidate:
-    """Convert a name-field parsed result to a ``StudentIdentityCandidate``.
+) -> "StudentIdentityCandidate":
+    """Convert a name-field parsed result to a ``StudentIdentityCandidate``."""
+    _guard(result, "parse_name_field_to_identity_candidate")
 
-    Delegates identity parsing to ``parse_student_identity`` from the
-    recognition layer so roster validation stays in one place.
-    """
     from ..identity_parser import parse_student_identity
 
     raw_text = str(result.data.get("raw_text", "")).strip()
@@ -56,8 +77,13 @@ def parse_name_field_to_identity_candidate(
 def parse_choice_response_to_draft(
     result: QwenParsedResult,
     question_number: int = 0,
-) -> RecognizedAnswerDraft:
+) -> "RecognizedAnswerDraft":
     """Convert a choice-cell parsed result to a ``RecognizedAnswerDraft``."""
+    _guard(result, "parse_choice_response_to_draft")
+
+    from ..choice_mock import normalize_choice_recognition
+    from ..models import ChoiceCellOutput
+
     cell = ChoiceCellOutput(
         answer=str(result.data.get("answer", "")),
         confidence=result.confidence,
@@ -73,8 +99,13 @@ def parse_choice_response_to_draft(
 def parse_blank_response_to_draft(
     result: QwenParsedResult,
     question_number: int = 0,
-) -> RecognizedAnswerDraft:
+) -> "RecognizedAnswerDraft":
     """Convert a blank-answer parsed result to a ``RecognizedAnswerDraft``."""
+    _guard(result, "parse_blank_response_to_draft")
+
+    from ..blank_mock import normalize_blank_recognition
+    from ..models import MockBlankOutput
+
     mock = MockBlankOutput(
         raw_text=str(result.data.get("raw_text", "")),
         latex=str(result.data.get("latex", "")),
@@ -91,8 +122,12 @@ def parse_blank_response_to_draft(
 
 def parse_complex_judgment_response(
     result: QwenParsedResult,
-) -> QwenJudgmentMock:
+) -> "QwenJudgmentMock":
     """Convert a complex-blank judgment parsed result to a ``QwenJudgmentMock``."""
+    _guard(result, "parse_complex_judgment_response")
+
+    from ..models import QwenJudgmentMock
+
     verdict = str(result.data.get("verdict", "needs_review")).strip().lower()
     if verdict not in QwenJudgmentMock.VALID_VERDICTS:
         verdict = QwenJudgmentMock.VERDICT_NEEDS_REVIEW
@@ -104,13 +139,20 @@ def parse_complex_judgment_response(
         normalized_standard=str(result.data.get("normalized_standard", "")),
         normalized_student=str(result.data.get("normalized_student", "")),
         equivalence_type=str(result.data.get("equivalence_type", "unknown")),
-        requires_review=bool(result.data.get("requires_review", True)),
+        requires_review=_safe_bool(result.data.get("requires_review"), default=True),
     )
 
 
 # ---------------------------------------------------------------------------
 # Dispatchers (convenience)
 # ---------------------------------------------------------------------------
+
+from .models import (  # noqa: E402
+    PROMPT_TYPE_BLANK_ANSWER,
+    PROMPT_TYPE_CHOICE_CELL,
+    PROMPT_TYPE_COMPLEX_BLANK_JUDGMENT,
+    PROMPT_TYPE_NAME_FIELD,
+)
 
 _MAPPERS = {
     PROMPT_TYPE_NAME_FIELD: parse_name_field_to_identity_candidate,

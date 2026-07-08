@@ -139,6 +139,36 @@ class ParserTests(unittest.TestCase):
             QwenAdapterErrorCode.UNSUPPORTED_PROMPT_TYPE, result.errors
         )
 
+    # -- request_id propagation -----------------------------------------------
+
+    def test_request_id_from_response(self):
+        data = {"raw_text": "1李明", "confidence": 0.98}
+        resp = QwenRawResponse(
+            request_id="req-001",
+            raw_text=json.dumps(data, ensure_ascii=False),
+            parsed_json=data,
+        )
+        result = parse_qwen_response(resp, PROMPT_TYPE_NAME_FIELD)
+        self.assertEqual(result.request_id, "req-001")
+
+    def test_request_id_explicit_overrides_response(self):
+        data = {"raw_text": "1李明", "confidence": 0.98}
+        resp = QwenRawResponse(
+            request_id="req-from-resp",
+            raw_text=json.dumps(data, ensure_ascii=False),
+            parsed_json=data,
+        )
+        result = parse_qwen_response(
+            resp, PROMPT_TYPE_NAME_FIELD, request_id="explicit-001"
+        )
+        self.assertEqual(result.request_id, "explicit-001")
+
+    def test_request_id_on_error_result(self):
+        resp = QwenRawResponse(request_id="req-err", raw_text="{not json")
+        result = parse_qwen_response(resp, PROMPT_TYPE_NAME_FIELD)
+        self.assertEqual(result.status, "error")
+        self.assertEqual(result.request_id, "req-err")
+
 
 if __name__ == "__main__":
     unittest.main()

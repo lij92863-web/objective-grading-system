@@ -98,6 +98,7 @@ class QwenParsedResult:
     (``StudentIdentityCandidate``, ``RecognizedAnswerDraft``, etc.).
     """
 
+    request_id: str = ""
     prompt_type: str = ""
     status: str = "ok"
     data: dict = dataclasses.field(default_factory=dict)

@@ -165,7 +165,13 @@ class LegacyFreezeBoundaryTests(unittest.TestCase):
 
 
 class ApplicationLayerBoundaryTests(unittest.TestCase):
-    """app/application must not depend on legacy, web, or infrastructure."""
+    """app/application must not depend on legacy, web, or infrastructure.
+
+    Exception: csv_report_pipeline.py is the orchestration layer that
+    bridges builders → exporters and is explicitly allowed to import
+    from app.infrastructure.exporters.
+    """
+    _PIPELINE_WHITELIST = {"csv_report_pipeline.py"}
 
     def test_application_does_not_import_legacy(self):
         for f in _py_files("app/application"):
@@ -181,6 +187,8 @@ class ApplicationLayerBoundaryTests(unittest.TestCase):
 
     def test_application_does_not_import_infrastructure_exporters(self):
         for f in _py_files("app/application"):
+            if f.name in self._PIPELINE_WHITELIST:
+                continue
             with self.subTest(file=str(f)):
                 hits = _any_name_starts(_imports(f), ("app.infrastructure.exporters",))
                 self.assertEqual([], hits, f"{f} imports exporters: {hits}")

@@ -1,13 +1,15 @@
-"""Qwen adapter shell — Stage R8A.
+"""Qwen adapter shell — Stage R8A / R8B.
 
-Defines the abstract client interface, fake client, request/response
-models, parser, validators, and mapping layer.  No real API calls are
-made at this stage.
+Defines the abstract client interface, fake client, real client
+(gated behind env vars), request/response models, parser, validators,
+and mapping layer.
 """
 
 from .client import QwenClient
 from .errors import QwenAdapterError, QwenAdapterErrorCode
 from .fake_client import FakeQwenClient
+from .prompt_builder import build_prompt
+from .real_client import RealQwenClient
 from .mapping import (
     parse_blank_response_to_draft,
     parse_choice_response_to_draft,
@@ -36,9 +38,12 @@ __all__ = [
     # client
     "QwenClient",
     "FakeQwenClient",
+    "RealQwenClient",
     # errors
     "QwenAdapterError",
     "QwenAdapterErrorCode",
+    # prompt builder
+    "build_prompt",
     # models
     "QwenImageInput",
     "QwenRequest",

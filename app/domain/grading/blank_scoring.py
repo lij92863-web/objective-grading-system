@@ -18,8 +18,8 @@ def canonical_blank_text(value: object) -> str:
     text = text.replace(" ", "")
     text = text.replace("\uff08", "(").replace("\uff09", ")")
     text = text.replace("\u221a", "sqrt")
-    text = re.sub(r"\bsqrt\(([^)]+)\)", r"sqrt(\1)", text)
     text = text.replace("\u6839\u53f7", "sqrt")
+    text = re.sub(r"\bsqrt\(([^)]+)\)", r"sqrt\1", text)
     return text
 
 

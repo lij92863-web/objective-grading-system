@@ -160,7 +160,34 @@ class LegacyFreezeBoundaryTests(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# 5. app/core.py white-list (compatibility facade)
+# 5. Application layer
+# ---------------------------------------------------------------------------
+
+
+class ApplicationLayerBoundaryTests(unittest.TestCase):
+    """app/application must not depend on legacy, web, or infrastructure."""
+
+    def test_application_does_not_import_legacy(self):
+        for f in _py_files("app/application"):
+            with self.subTest(file=str(f)):
+                hits = _any_name_starts(_imports(f), FORBIDDEN_LEGACY)
+                self.assertEqual([], hits, f"{f} imports legacy: {hits}")
+
+    def test_application_does_not_import_web(self):
+        for f in _py_files("app/application"):
+            with self.subTest(file=str(f)):
+                hits = _any_name_starts(_imports(f), ("web_app", "web",))
+                self.assertEqual([], hits, f"{f} imports web: {hits}")
+
+    def test_application_does_not_import_infrastructure_exporters(self):
+        for f in _py_files("app/application"):
+            with self.subTest(file=str(f)):
+                hits = _any_name_starts(_imports(f), ("app.infrastructure.exporters",))
+                self.assertEqual([], hits, f"{f} imports exporters: {hits}")
+
+
+# ---------------------------------------------------------------------------
+# 6. app/core.py white-list (compatibility facade)
 # ---------------------------------------------------------------------------
 
 

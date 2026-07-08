@@ -68,6 +68,11 @@ def build_class_report(exam_meta: dict, questions: list, results: list, profiles
         partial_rate = round(partial / total * 100, 2)
         from collections import Counter as _Counter
         distribution = _Counter(d.get("normalized_answer") or d.get("actual", "") or "(blank)" for d in details)
-        extra = f"tags={'/'.join(q_tags)};blank_rate={blank_rate};wrong_rate={wrong_rate};partial_rate={partial_rate};option_distribution={json.dumps(dict(distribution), ensure_ascii=False)}"
+        dist_json = json.dumps(dict(distribution), ensure_ascii=False)
+        extra = (
+            f"tags={'/'.join(q_tags)};blank_rate={blank_rate}"
+            f";wrong_rate={wrong_rate};partial_rate={partial_rate}"
+            f";option_distribution={dist_json}"
+        )
         rows.append(dict(section="item", metric=f"Q{qnum}", value=accuracy, extra=extra))
     return rows

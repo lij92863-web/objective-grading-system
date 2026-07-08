@@ -29,8 +29,10 @@ class ItemAnalysisBuilderTests(unittest.TestCase):
         new_rows = build_item_analysis_rows(specs, results)
         self.assertEqual(len(new_rows), len(legacy_rows))
         for i in range(len(new_rows)):
-            for k in ["question","accuracy","blank_rate","wrong_rate","partial_rate","invalid_rate","mistake_count"]:
-                self.assertEqual(new_rows[i].get(k), legacy_rows[i].get(k), f"Row {i} {k}")
+            # Compare all keys present in legacy row
+            for k in legacy_rows[i]:
+                self.assertEqual(new_rows[i].get(k), legacy_rows[i].get(k),
+                                 f"Row {i} key {k}")
     def test_empty(self): self.assertEqual(build_item_analysis_rows([], []), [])
     def test_no_legacy(self):
         f = PROJECT_ROOT/"app/application/use_cases/report_builders/item_analysis.py"

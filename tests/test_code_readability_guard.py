@@ -24,13 +24,18 @@ def _target_files() -> list[Path]:
     dirs = [
         "app/domain",
         "app/recognition",
+        "app/application",
+        "app/infrastructure",
     ]
     files: list[Path] = []
     for d in dirs:
         files.extend(Path(PROJECT_ROOT, d).rglob("*.py"))
     # also test files
     for pattern in ("test_grading*.py", "test_recognition*.py",
-                    "test_qwen*.py"):
+                    "test_qwen*.py", "test_report_builder*.py",
+                    "test_*_csv_exporter.py",
+                    "test_csv_exporters_migration_matrix.py",
+                    "test_report_builders_migration_matrix.py"):
         files.extend(Path(PROJECT_ROOT, "tests").glob(pattern))
     return sorted(files)
 

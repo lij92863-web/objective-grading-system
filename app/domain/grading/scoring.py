@@ -4,8 +4,9 @@ from collections import Counter
 from typing import FrozenSet, Iterable, List, Tuple
 
 from .blank_scoring import blank_answer_matches, canonical_blank_text
+from .choice_scoring import score_choice_answer
 from .models import AnswerKey, QuestionResult, QuestionSpec, SingleQuestionScore, StudentResult, Submission
-from .normalize import allowed_options, format_answer, format_expected_answer, is_choice_answer, matches_text_answer, normalize_text_answer
+from .normalize import format_answer, format_expected_answer, is_choice_answer, matches_text_answer, normalize_text_answer
 from .true_false_scoring import normalize_true_false
 
 
@@ -82,21 +83,8 @@ def score_answer_detail(spec: QuestionSpec, actual: FrozenSet[str], raw_actual: 
             return _detail(spec, actual, raw_actual, 0.0, "needs_review", "blank_answer_needs_teacher_review", True)
         return _detail(spec, actual, raw_actual, 0.0, "wrong")
 
-    if actual and actual == spec.answers:
-        return _detail(spec, actual, raw_actual, spec.points, "correct")
-    if is_choice_answer(spec.answers) and not actual <= allowed_options(spec):
-        return _detail(spec, actual, raw_actual, 0.0, "invalid")
-    if len(spec.answers) == 1:
-        return _detail(spec, actual, raw_actual, 0.0, "wrong")
-    if spec.partial_credit and len(spec.answers) > 1:
-        wrong_selected = actual - spec.answers
-        right_selected = actual & spec.answers
-        if wrong_selected:
-            return _detail(spec, actual, raw_actual, 0.0, "wrong")
-        if right_selected:
-            partial = spec.partial_points if spec.partial_points is not None else spec.points * len(right_selected) / len(spec.answers)
-            return _detail(spec, actual, raw_actual, round(partial, 6), "partial")
-    return _detail(spec, actual, raw_actual, 0.0, "wrong")
+    choice_score, choice_status = score_choice_answer(spec, actual)
+    return _detail(spec, actual, raw_actual, choice_score, choice_status)
 
 
 def score_answer(spec: QuestionSpec, actual: FrozenSet[str], raw_actual: str = "") -> Tuple[float, str]:

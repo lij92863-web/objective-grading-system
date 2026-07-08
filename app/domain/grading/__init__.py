@@ -21,6 +21,7 @@ from .normalize import (
 )
 from .precheck import PrecheckIssue, PrecheckReport, run_grading_precheck
 from .scoring import grade_all, grade_submission, score_answer, score_answer_detail
+from .choice_scoring import score_choice_answer
 
 __all__ = [
     "AnswerDraft",
@@ -50,4 +51,5 @@ __all__ = [
     "run_grading_precheck",
     "score_answer",
     "score_answer_detail",
+    "score_choice_answer",
 ]

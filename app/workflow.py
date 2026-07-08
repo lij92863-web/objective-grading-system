@@ -465,24 +465,25 @@ def run_grading(
         simple_score_workbook_path = temp_dir_path / "simple_score_report.xlsx"
         index_path = temp_dir_path / "index.html"
 
-        legacy.write_summary(summary_path, results)
-        legacy.write_detail(detail_path, answer_key, results)
-        legacy.write_item_analysis(item_analysis_path, answer_key, results)
-        legacy.write_knowledge_profiles(knowledge_profile_path, profiles)
-        if question_bank:
-            practice_rows = legacy.recommend_practice(
-                profiles,
-                question_bank,
-                per_tag=practice_per_tag,
-                already_correct=legacy.build_correct_question_ids(answer_key, results),
-                target_difficulties=legacy.build_target_difficulties(answer_key, results),
-            )
-        else:
-            practice_rows = []
-        legacy.write_practice_recommendations(practice_path, practice_rows)
-        class_rows = legacy.build_class_report(answer_key, results, profiles, meta)
-        legacy.write_class_report(class_report_path, class_rows)
-        legacy.write_student_report(student_report_path, results, profiles)
+        # -- CSV output via new pipeline ---------------------------------
+        from app.application.use_cases.csv_report_pipeline import (
+            run_csv_report_pipeline, CsvPipelineInput,
+        )
+        csv_result = run_csv_report_pipeline(CsvPipelineInput(
+            output_dir=temp_dir_path,
+            answer_key=answer_key,
+            results=results,
+            submissions=submissions,
+            profiles=profiles,
+            question_bank=list(question_bank) if question_bank else [],
+            exam_meta={
+                "exam_name": exam_name, "class_name": class_name,
+                "subject": subject, "exam_date": exam_date,
+            },
+            weak_threshold=weak_threshold,
+            practice_per_tag=practice_per_tag,
+        ))
+        # -- legacy Excel / HTML still needs these rows -------------------
         simple_rows = legacy.simple_score_rows(results)
         item_rows = legacy.item_stats(answer_key, results)
         teaching_rows = build_teaching_plan(item_rows)

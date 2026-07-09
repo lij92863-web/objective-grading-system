@@ -19,12 +19,20 @@ FORBIDDEN_DIRECT_CALLS = {
 
 class ObjectiveGraderCompatibilityGateTests(unittest.TestCase):
 
+    def test_no_direct_legacy_import(self):
+        """C4: objective_grader.py must NOT import legacy directly."""
+        src = (PROJECT_ROOT / "objective_grader.py").read_text("utf-8")
+        self.assertNotIn("from legacy import", src,
+                         "objective_grader must not import legacy directly")
+        self.assertNotIn("objective_grader_legacy", src,
+                         "objective_grader must delegate to app.compat")
+
     def test_no_star_import(self):
         src = (PROJECT_ROOT / "objective_grader.py").read_text("utf-8")
         tree = ast.parse(src)
         for node in ast.walk(tree):
             if isinstance(node, ast.ImportFrom):
-                if node.module == "legacy.objective_grader_legacy":
+                if node.module and "legacy" in node.module:
                     self.assertFalse(
                         any(a.name == "*" for a in node.names),
                         "Star import from legacy is forbidden")

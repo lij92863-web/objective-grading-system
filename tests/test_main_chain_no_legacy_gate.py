@@ -13,12 +13,11 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 # These files are allowed to import legacy (facades / compatibility)
 LEGACY_IMPORT_ALLOWLIST = {
-    "app/workflow.py",           # whitelist: ExamMeta, load_question_bank
+    "app/compat/objective_grader_compat.py",  # ONLY allowed legacy import
     "app/validators.py",          # facade — uses build_validation_report
     "app/analysis.py",            # facade — re-exports legacy
     "app/reports.py",             # facade — re-exports legacy
     "app/core.py",                # facade — re-exports legacy
-    "objective_grader.py",        # compatibility exports
 }
 
 

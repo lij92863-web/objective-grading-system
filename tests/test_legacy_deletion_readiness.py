@@ -57,8 +57,9 @@ class LegacyDeletionReadinessTests(unittest.TestCase):
         self.assertFalse(imps, "workflow.py should no longer import legacy")
 
     def test_objective_grader_imports_legacy_recorded(self):
+        """C4: objective_grader NO LONGER imports legacy directly."""
         imps = _imports_legacy(PROJECT_ROOT / "objective_grader.py")
-        self.assertTrue(imps, "objective_grader.py should still import legacy")
+        self.assertFalse(imps, "objective_grader should delegate to app/compat")
 
     def test_tests_import_legacy_allowed(self):
         """Tests can import legacy for baseline comparisons."""

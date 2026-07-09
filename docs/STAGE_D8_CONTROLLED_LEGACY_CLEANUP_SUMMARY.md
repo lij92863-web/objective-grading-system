@@ -33,7 +33,7 @@
 - No direct grading/report/loader calls ✅
 - Only compatibility re-export
 
-## Deleted (50 files)
+## Deleted (49 files, old_modules 16 + old_outputs 33)
 - `legacy/old_modules/` — analysis, core, io, workflow subdirs (all zero-reference)
 - `legacy/old_outputs/` — old reports, mvp_check outputs (all zero-reference)
 

@@ -26,19 +26,15 @@ ALLOWED_LEGACY_TEST_IMPORTS = {
     "tests/test_workflow_grading_core_guard.py",
     "tests/test_facade_legacy_dependency_guard.py",
     "tests/test_code_readability_guard.py",
-    # Parity/integration tests (harder to convert safely this round)
+    # Remaining parity/integration (deferred to next round)
     "tests/test_csv_report_pipeline_shadow_parity.py",
     "tests/test_excel_exporter_shadow_parity.py",
     "tests/test_html_exporter_shadow_parity.py",
     "tests/test_csv_loaders.py",
-    "tests/test_csv_loaders_baseline.py",
-    "tests/test_validation_error_path_baseline.py",
     "tests/test_validation_report_writer.py",
-    "tests/test_grading_core_entry_baseline.py",
     "tests/test_workflow_builder_integration.py",
     "tests/test_workflow_grading_core_integration.py",
     "tests/test_workflow_validation_error_path.py",
-    # Exporter tests
     "tests/test_simple_score_workbook_exporter.py",
     "tests/test_simple_report_html_exporter.py",
     "tests/test_advanced_dashboard_html_exporter.py",
@@ -76,10 +72,9 @@ class TestsNoLegacyBaselineGuardTests(unittest.TestCase):
             f"Non-whitelisted tests import legacy: {len(violations)} files")
 
     def test_whitelist_count_reasonable(self):
-        """Whitelist must be smaller than original 26 importing-test count."""
+        """Whitelist reduced from 26→17→13 after B5 conversion."""
         self.assertLessEqual(
-            len(ALLOWED_LEGACY_TEST_IMPORTS), 40,
-            "Whitelist should be ≤ 40 files; original was 26")
+            len(ALLOWED_LEGACY_TEST_IMPORTS), 35, "max 35")
 
 
 if __name__ == "__main__":

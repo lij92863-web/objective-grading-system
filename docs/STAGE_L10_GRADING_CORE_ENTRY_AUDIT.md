@@ -43,3 +43,19 @@ L10A baseline added:
 L10A conclusion: domain `grade_all` is an equivalent workflow entry candidate.
 The remaining risk is accidental output-shape drift in downstream reports, so
 L10B must include workflow guard and full report smoke tests.
+
+## L10B Cutover
+
+`app/workflow.py` now imports `grade_all` from `app.domain.grading` and no
+longer calls `legacy.grade_all`.
+
+Verification added:
+
+- `tests/test_workflow_grading_core_guard.py` prevents direct
+  `legacy.grade_all` calls in workflow.
+- `tests/test_workflow_grading_core_integration.py` monkey-patches
+  `legacy.grade_all` to fail and verifies the workflow still emits 8 CSV,
+  2 Excel, and 3 HTML outputs.
+
+No grading rules, CLI arguments, UI files, legacy files, or report formats were
+changed.

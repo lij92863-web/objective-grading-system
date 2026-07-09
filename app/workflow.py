@@ -13,6 +13,7 @@ from typing import Dict, Iterable, List, Optional, Tuple
 
 from legacy import objective_grader_legacy as legacy
 from app.validators import has_blocking_errors
+from app.domain.grading import grade_all
 from app.infrastructure.exporters.contracts import ExportRequest
 from app.infrastructure.exporters.simple_score_workbook_exporter import (
     SimpleScoreWorkbookExporter,
@@ -461,7 +462,7 @@ def run_grading(
 
     answer_key = load_answer_key(answer_key_path)
     submissions = load_submissions(submissions_path, answer_key)
-    results = legacy.grade_all(answer_key, submissions)
+    results = grade_all(answer_key, submissions)
     meta = legacy.ExamMeta(exam_name=exam_name, class_name=class_name, subject=subject, exam_date=exam_date)
     profile_rows = build_knowledge_profiles(
         [_legacy_spec_to_dict(spec) for spec in answer_key.questions],

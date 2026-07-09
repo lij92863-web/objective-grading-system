@@ -59,6 +59,7 @@ def build_question_index(document: DocumentModel) -> QuestionIndex:
     seen: set[int] = set()
     last_no = 0
     blocks = document.sorted_blocks()
+    pending: list[QuestionIndexItem] = []
     for index, block in enumerate(blocks):
         if block.block_type == "table":
             continue
@@ -83,7 +84,17 @@ def build_question_index(document: DocumentModel) -> QuestionIndex:
         last_no = question_no
         nearby = "\n".join(b.text for b in blocks[index : index + 4])
         labels = sorted(set(re.findall(r"([A-D])[\.\、]", nearby)))
-        result.questions.append(
+        end_block = block.block_id
+        for following in blocks[index + 1 :]:
+            f_text = normalize_text(following.text)
+            if following.block_type == "table":
+                continue
+            if re.match(r"^[一二三四五六七八九十]+[、,].*(单选|多选|填空|解答)", f_text):
+                break
+            if re.match(r"^(\d{1,3})[\.\、]\s*(?!【答案】)(.+)", f_text) or any(token in f_text for token in ("参考答案", "答案解析", "【答案】", "故选")):
+                break
+            end_block = following.block_id
+        pending.append(
             QuestionIndexItem(
                 question_no=question_no,
                 question_type=_question_type_from_section(current_section),
@@ -91,8 +102,9 @@ def build_question_index(document: DocumentModel) -> QuestionIndex:
                 has_options=bool(labels),
                 option_labels=labels,
                 source_file=block.source_file,
-                source_span=SourceSpan(start_block=block.block_id, end_block=block.block_id, page_index=block.page_index),
+                source_span=SourceSpan(start_block=block.block_id, end_block=end_block, page_index=block.page_index),
                 confidence=0.95 if current_section else 0.75,
             )
         )
+    result.questions = pending
     return result

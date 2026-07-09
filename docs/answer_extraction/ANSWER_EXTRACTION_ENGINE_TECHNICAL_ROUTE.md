@@ -21,3 +21,5 @@ The main chain is:
 LLM fallback is a disabled stub. When enabled in tests, it only creates review candidates with explicit evidence already present in the snippet. It never directly accepts an answer and never calls a network API.
 
 Fail-closed principle: uncertain extraction becomes missing, review, or blocked. The engine does not process real student answer-card photos, does not perform grading, and does not generate formal score reports.
+
+V2 hardening adds realistic synthetic fixtures, schema-checked `DocumentModel` loading, table normalization, stronger empty-grid detection, segmented answer tables, Chinese bracket answer formats, fill-blank expression preservation, question/answer sequence validators, and conflict resolution. The validator continues to prefer review or warning over silent guessing.

@@ -1,0 +1,18 @@
+{
+  "document_id": "type4_question_with_empty_grid_realistic",
+  "source_file": "type4_question_with_empty_grid_realistic.json",
+  "blocks": [
+    {"block_id": "p001", "block_type": "paragraph", "text": "班级 姓名 考号 评分", "raw_text": "班级 姓名 考号 评分", "page_index": 0, "order_index": 1, "source_file": "type4_question_with_empty_grid_realistic.json"},
+    {"block_id": "tb002", "block_type": "table", "text": "题号 | 1 | 2 | 3\n答案 |  |  | ", "raw_text": "题号 | 1 | 2 | 3\n答案 |  |  | ", "page_index": 0, "order_index": 2, "source_file": "type4_question_with_empty_grid_realistic.json", "table_id": "t_empty"},
+    {"block_id": "p003", "block_type": "paragraph", "text": "一、单选题", "raw_text": "一、单选题", "page_index": 0, "order_index": 3, "source_file": "type4_question_with_empty_grid_realistic.json"},
+    {"block_id": "p004", "block_type": "paragraph", "text": "1. 题干 A.甲 B.乙 C.丙 D.丁", "raw_text": "1. 题干 A.甲 B.乙 C.丙 D.丁", "page_index": 0, "order_index": 4, "source_file": "type4_question_with_empty_grid_realistic.json"},
+    {"block_id": "p005", "block_type": "paragraph", "text": "2. 题干 A.甲 B.乙 C.丙 D.丁", "raw_text": "2. 题干 A.甲 B.乙 C.丙 D.丁", "page_index": 0, "order_index": 5, "source_file": "type4_question_with_empty_grid_realistic.json"}
+  ],
+  "tables": [
+    {"table_id": "t_empty", "row_count": 2, "col_count": 4, "page_index": 0, "order_index": 2, "source_file": "type4_question_with_empty_grid_realistic.json", "cells": [
+      {"row_index": 0, "col_index": 0, "text": "题号", "raw_text": "题号"}, {"row_index": 0, "col_index": 1, "text": "1", "raw_text": "1"}, {"row_index": 0, "col_index": 2, "text": "2", "raw_text": "2"}, {"row_index": 0, "col_index": 3, "text": "3", "raw_text": "3"},
+      {"row_index": 1, "col_index": 0, "text": "答案", "raw_text": "答案"}, {"row_index": 1, "col_index": 1, "text": "", "raw_text": ""}, {"row_index": 1, "col_index": 2, "text": "", "raw_text": ""}, {"row_index": 1, "col_index": 3, "text": "", "raw_text": ""}
+    ]}
+  ],
+  "metadata": {"expected_strategy": "split_file_itemized"}
+}

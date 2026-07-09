@@ -16,11 +16,11 @@ class ItemizedAnswerExtractionResult:
 
 
 PATTERNS = [
-    ("explicit_answer", re.compile(r"^(\d{1,3})[\.\、]\s*【答案】\s*([A-Da-d,，、\s]{1,12})")),
-    ("explicit_answer", re.compile(r"^(\d{1,3})[\.\、]\s*答案[:：]\s*([A-Da-d,，、\s]{1,12})")),
+    ("explicit_answer", re.compile(r"^(\d{1,3})[\.\、]\s*(?:【答案】|〖答案〗|\[答案\])\s*(.+)$")),
+    ("explicit_answer", re.compile(r"^(\d{1,3})[\.\、]\s*答案(?:为)?[:：]?\s*(.+)$")),
     ("short_itemized", re.compile(r"^(\d{1,3})[\.\、]\s*([A-Da-d]{1,4})\s*$")),
     ("guxuan", re.compile(r"^(\d{1,3})[\.\、].*故选[:：]?\s*([A-Da-d]{1,4})")),
-    ("gu_daanwei", re.compile(r"^(\d{1,3})[\.\、].*故答案为[:：]?\s*([A-Da-d,，、\s]{1,12})")),
+    ("gu_daanwei", re.compile(r"^(\d{1,3})[\.\、].*故答案(?:为|是)?[:：]?\s*(.+)$")),
 ]
 
 CONFIDENCE = {
@@ -46,10 +46,13 @@ def extract_itemized_answers(document: DocumentModel) -> ItemizedAnswerExtractio
             question_no = int(match.group(1))
             if question_no > 300:
                 continue
-            normalized = normalize_answer(match.group(2))
+            raw_answer = match.group(2).split("【", 1)[0].split("解析", 1)[0].strip()
+            normalized = normalize_answer(raw_answer)
+            if not normalized.is_valid and raw_answer:
+                normalized = normalize_answer(raw_answer, "blank")
             candidate = AnswerCandidate(
                 question_no=question_no,
-                raw_answer=match.group(2),
+                raw_answer=raw_answer,
                 normalized_answer=normalized.normalized_answer,
                 answer_type=normalized.answer_type,
                 source_kind=source_kind,

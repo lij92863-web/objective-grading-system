@@ -18,6 +18,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--question")
     parser.add_argument("--answer")
     parser.add_argument("--json", action="store_true", dest="as_json")
+    parser.add_argument("--strict", action="store_true")
+    parser.add_argument("--allow-review-status", action="store_true")
+    parser.add_argument("--show-evidence", action="store_true")
+    parser.add_argument("--summary-only", action="store_true")
     args = parser.parse_args(argv)
     files: list[str] = []
     if args.file:
@@ -28,6 +32,11 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("use --file or --question plus --answer")
     try:
         result = extract_answer_key(files).to_safe_dict()
+        if args.summary_only:
+            result = {key: result[key] for key in ("strategy", "status", "question_count", "answer_count", "missing_answers", "blocking_errors", "review_items")}
+        if not args.show_evidence and "answers" in result:
+            for answer in result["answers"].values():
+                answer.pop("evidence_text", None)
     except Exception as exc:
         result = {"status": "failed", "error": str(exc)}
         print(json.dumps(result, ensure_ascii=False, indent=2))
@@ -36,6 +45,8 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, ensure_ascii=False, indent=2))
     else:
         print(result)
+    if args.strict and result["status"] not in {"accepted", "accepted_with_warnings"}:
+        return 1
     return 1 if result["status"] in {"failed"} else 0
 
 

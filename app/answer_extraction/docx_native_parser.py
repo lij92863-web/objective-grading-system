@@ -15,7 +15,20 @@ class DocxParseError(ValueError):
 
 
 def _texts(element: ET.Element) -> str:
-    return "".join(node.text or "" for node in element.findall(".//w:t", NS))
+    parts: list[str] = []
+    for node in element.iter():
+        tag = node.tag.rsplit("}", 1)[-1]
+        if tag == "t":
+            parts.append(node.text or "")
+        elif tag == "tab":
+            parts.append("\t")
+        elif tag == "br":
+            parts.append("\n")
+        elif tag in {"drawing", "object", "pict"}:
+            parts.append("[object]")
+        elif tag == "oMath":
+            parts.append("[equation]")
+    return "".join(parts)
 
 
 def parse_docx(path: str | Path) -> DocumentModel:
@@ -51,7 +64,8 @@ def parse_docx(path: str | Path) -> DocumentModel:
                 row_cells = row.findall("./w:tc", NS)
                 col_count = max(col_count, len(row_cells))
                 for col_index, cell in enumerate(row_cells):
-                    text = normalize_text(_texts(cell))
+                    paragraphs = [normalize_text(_texts(p)) for p in cell.findall("./w:p", NS)]
+                    text = normalize_text("\n".join(part for part in paragraphs if part) or _texts(cell))
                     cells.append(DocumentCell(row_index, col_index, text=text, raw_text=text))
             table = DocumentTable(f"t_{len(tables):03d}", cells, len(rows), col_count, order_index=order, source_file=docx_path.name)
             tables.append(table)

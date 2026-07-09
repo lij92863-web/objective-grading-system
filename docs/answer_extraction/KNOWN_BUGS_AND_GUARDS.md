@@ -12,3 +12,6 @@
 | Missing answers filled by AI | LLM fallback defaults disabled and validator reviews LLM candidates | `tests/test_answer_extraction_engine_v1.py` | covered |
 | LLM output without evidence | fallback rejects candidates whose evidence is not in the snippet | `tests/test_answer_extraction_engine_v1.py` | covered |
 | Forbidden integration or secret terms | static safety guard scans answer extraction source and CLIs | `tests/test_answer_extraction_safety_guards.py` | covered |
+| Segmented answer tables missed | table normalizer detects repeated question/answer row-pairs | `tests/test_answer_extraction_v2_hardening.py` | covered |
+| Complex fill blank rejected as invalid choice | itemized extractor falls back to blank normalization with warning | `tests/test_answer_extraction_v2_hardening.py` | covered |
+| Accepted answer lacks evidence | v2 evidence guard checks accepted answers | `tests/test_answer_extraction_guards_v2.py` | covered |

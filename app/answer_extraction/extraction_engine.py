@@ -10,8 +10,10 @@ from app.answer_extraction.answer_key_validator import validate_answer_key
 from app.answer_extraction.answer_layout_classifier import classify_answer_layout
 from app.answer_extraction.answer_table_extractor import extract_answer_tables
 from app.answer_extraction.cross_file_aligner import align_by_question_no
+from app.answer_extraction.candidate_conflict_resolver import resolve_candidate_conflicts
 from app.answer_extraction.docx_native_parser import parse_docx
 from app.answer_extraction.document_model import DocumentModel
+from app.answer_extraction.document_model_loader import load_document_model_json
 from app.answer_extraction.extraction_report import ExtractionReport
 from app.answer_extraction.extraction_strategy_router import ExtractionStrategy, choose_strategy
 from app.answer_extraction.file_role_classifier import FileRole, classify_file_role
@@ -39,18 +41,31 @@ class ExtractionResult:
         return len(self.answers)
 
     def to_safe_dict(self) -> dict[str, Any]:
+        accepted_count = self.report.get("accepted_count", 0) if isinstance(self.report, dict) else 0
+        evidence_summary = {
+            question_no: {
+                "source_kind": answer.get("source_kind", ""),
+                "source_file": answer.get("source_file", ""),
+                "source_span": answer.get("source_span", {}),
+            }
+            for question_no, answer in self.answers.items()
+        }
         return {
             "run_id": self.run_id,
             "strategy": self.strategy,
             "status": self.status,
             "question_count": self.question_count,
             "answer_count": self.answer_count,
+            "accepted_count": accepted_count,
+            "review_count": len(self.review_items),
             "questions": self.questions,
             "answers": self.answers,
             "alignment_report": self.alignment_report,
             "missing_answers": self.alignment_report.get("missing_answers", []),
+            "unexpected_answers": self.alignment_report.get("unexpected_answers", []),
             "blocking_errors": self.alignment_report.get("blocking_errors", []),
             "review_items": self.review_items,
+            "evidence_summary": evidence_summary,
             "report": self.report,
         }
 
@@ -58,17 +73,7 @@ class ExtractionResult:
 def load_document(path: str | Path) -> DocumentModel:
     file_path = Path(path)
     if file_path.suffix.lower() == ".json":
-        data = json.loads(file_path.read_text(encoding="utf-8"))
-        document = DocumentModel.from_dict(data)
-        if not document.source_file:
-            document.source_file = file_path.name
-        for block in document.blocks:
-            if not block.source_file:
-                block.source_file = document.source_file
-        for table in document.tables:
-            if not table.source_file:
-                table.source_file = document.source_file
-        return document
+        return load_document_model_json(file_path).document
     if file_path.suffix.lower() == ".docx":
         return parse_docx(file_path)
     raise ValueError("unsupported input file type")
@@ -144,7 +149,7 @@ def extract_answer_key(files: list[str] | list[DocumentModel]) -> ExtractionResu
     layouts = [classify_answer_layout(document) for document in documents]
     strategy_result = choose_strategy(roles, layouts)
     question_index = _build_question_index(strategy_result.strategy, documents, roles)
-    candidate_pool = _extract_candidates(strategy_result.strategy, documents, roles)
+    candidate_pool = resolve_candidate_conflicts(_extract_candidates(strategy_result.strategy, documents, roles)).candidate_pool
     alignment = align_by_question_no(question_index, candidate_pool)
     validation = validate_answer_key(question_index, candidate_pool, alignment)
     answers = _answers_dict(question_index, candidate_pool, validation.answer_statuses)

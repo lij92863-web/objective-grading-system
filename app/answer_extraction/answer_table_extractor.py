@@ -6,6 +6,7 @@ from app.answer_extraction.answer_candidate_pool import AnswerCandidate, AnswerC
 from app.answer_extraction.answer_normalizer import normalize_answer
 from app.answer_extraction.document_model import DocumentModel, DocumentTable, SourceSpan
 from app.answer_extraction.student_answer_grid_detector import detect_student_answer_grid
+from app.answer_extraction.table_normalizer import normalize_table
 from app.answer_extraction.text_normalizer import normalize_text
 
 
@@ -25,6 +26,8 @@ class AnswerTableExtractionResult:
 
 def _make_candidate(question_no: int, raw: str, table: DocumentTable) -> AnswerCandidate | None:
     normalized = normalize_answer(raw)
+    if not normalized.is_valid and raw and not any(ch.isdigit() for ch in raw):
+        normalized = normalize_answer(raw, "blank")
     if not normalized.normalized_answer:
         return None
     return AnswerCandidate(
@@ -43,7 +46,7 @@ def _make_candidate(question_no: int, raw: str, table: DocumentTable) -> AnswerC
 
 
 def _extract_horizontal(table: DocumentTable) -> list[AnswerCandidate]:
-    rows = table.grid()
+    rows = normalize_table(table).rows
     candidates: list[AnswerCandidate] = []
     index = 0
     while index < len(rows) - 1:
@@ -65,7 +68,7 @@ def _extract_horizontal(table: DocumentTable) -> list[AnswerCandidate]:
 
 
 def _extract_vertical(table: DocumentTable) -> list[AnswerCandidate]:
-    rows = table.grid()
+    rows = normalize_table(table).rows
     if not rows:
         return []
     header = [normalize_text(cell) for cell in rows[0]]

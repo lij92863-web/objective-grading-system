@@ -37,6 +37,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--question")
     parser.add_argument("--answer")
     parser.add_argument("--json", action="store_true", dest="as_json")
+    parser.add_argument("--strict", action="store_true")
+    parser.add_argument("--allow-review-status", action="store_true")
+    parser.add_argument("--show-evidence", action="store_true")
+    parser.add_argument("--summary-only", action="store_true")
     args = parser.parse_args(argv)
     paths = [path for path in [args.file, args.question, args.answer] if path]
     if not paths:

@@ -1,0 +1,17 @@
+{
+  "document_id": "type3_split_boxed_segmented_table_answer",
+  "source_file": "type3_split_boxed_segmented_table_answer.json",
+  "blocks": [
+    {"block_id": "p001", "block_type": "paragraph", "text": "参考答案", "raw_text": "参考答案", "page_index": 0, "order_index": 1, "source_file": "type3_split_boxed_segmented_table_answer.json"},
+    {"block_id": "tb002", "block_type": "table", "text": "题号 | 1 | 2\n答案 | B | C\n题号 | 3\n答案 | B D", "raw_text": "题号 | 1 | 2\n答案 | B | C\n题号 | 3\n答案 | B D", "page_index": 0, "order_index": 2, "source_file": "type3_split_boxed_segmented_table_answer.json", "table_id": "t_ans"}
+  ],
+  "tables": [
+    {"table_id": "t_ans", "row_count": 4, "col_count": 3, "page_index": 0, "order_index": 2, "source_file": "type3_split_boxed_segmented_table_answer.json", "cells": [
+      {"row_index": 0, "col_index": 0, "text": "题号", "raw_text": "题号"}, {"row_index": 0, "col_index": 1, "text": "1", "raw_text": "1"}, {"row_index": 0, "col_index": 2, "text": "2", "raw_text": "2"},
+      {"row_index": 1, "col_index": 0, "text": "答案", "raw_text": "答案"}, {"row_index": 1, "col_index": 1, "text": "B", "raw_text": "B"}, {"row_index": 1, "col_index": 2, "text": "C", "raw_text": "C"},
+      {"row_index": 2, "col_index": 0, "text": "题号", "raw_text": "题号"}, {"row_index": 2, "col_index": 1, "text": "3", "raw_text": "3"},
+      {"row_index": 3, "col_index": 0, "text": "答案", "raw_text": "答案"}, {"row_index": 3, "col_index": 1, "text": "B D", "raw_text": "B D"}
+    ]}
+  ],
+  "metadata": {"expected_strategy": "split_file_boxed"}
+}

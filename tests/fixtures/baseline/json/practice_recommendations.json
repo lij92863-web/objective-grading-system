@@ -1,0 +1,80 @@
+[
+  {
+    "student_id": "S001",
+    "name": "Student One",
+    "weak_tag": "function_concept",
+    "mastery": 50.0,
+    "question_id": "B003",
+    "target_difficulty": 3,
+    "difficulty": 3,
+    "difficulty_delta": 0,
+    "stem": "Identify the correct function statements.",
+    "answer": "BD",
+    "tags": "function_concept"
+  },
+  {
+    "student_id": "S002",
+    "name": "Student Two",
+    "weak_tag": "geometry_area",
+    "mastery": 0.0,
+    "question_id": "B004",
+    "target_difficulty": 2,
+    "difficulty": 2,
+    "difficulty_delta": 0,
+    "stem": "Find the area from the given dimensions.",
+    "answer": "C",
+    "tags": "geometry_area"
+  },
+  {
+    "student_id": "S002",
+    "name": "Student Two",
+    "weak_tag": "linear_equation",
+    "mastery": 0.0,
+    "question_id": "B001",
+    "target_difficulty": 1,
+    "difficulty": 1,
+    "difficulty_delta": 0,
+    "stem": "Solve a basic linear equation.",
+    "answer": "A",
+    "tags": "linear_equation"
+  },
+  {
+    "student_id": "S002",
+    "name": "Student Two",
+    "weak_tag": "linear_equation",
+    "mastery": 0.0,
+    "question_id": "B002",
+    "target_difficulty": 1,
+    "difficulty": 2,
+    "difficulty_delta": 1,
+    "stem": "Choose an equivalent equation form.",
+    "answer": "C",
+    "tags": "linear_equation"
+  },
+  {
+    "student_id": "S003",
+    "name": "Student Three",
+    "weak_tag": "geometry_area",
+    "mastery": 0.0,
+    "question_id": "B004",
+    "target_difficulty": 2,
+    "difficulty": 2,
+    "difficulty_delta": 0,
+    "stem": "Find the area from the given dimensions.",
+    "answer": "C",
+    "tags": "geometry_area"
+  },
+  {
+    "student_id": "S003",
+    "name": "Student Three",
+    "weak_tag": "function_concept",
+    "mastery": 50.0,
+    "question_id": "B003",
+    "target_difficulty": 3,
+    "difficulty": 3,
+    "difficulty_delta": 0,
+    "stem": "Identify the correct function statements.",
+    "answer": "BD",
+    "tags": "function_concept"
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "document_id": "mixed_unknown_should_review",
+  "source_file": "mixed_unknown_should_review.json",
+  "blocks": [
+    {"block_id": "p001", "block_type": "paragraph", "text": "本资料仅为课堂讨论，答案二字出现在题干中，但没有标准答案。", "raw_text": "本资料仅为课堂讨论，答案二字出现在题干中，但没有标准答案。", "page_index": 0, "order_index": 1, "source_file": "mixed_unknown_should_review.json"}
+  ],
+  "tables": [],
+  "metadata": {"expected_strategy": "mixed_or_unknown", "expected_blockers": []}
+}

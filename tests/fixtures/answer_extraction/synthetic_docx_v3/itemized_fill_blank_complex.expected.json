@@ -1,0 +1,7 @@
+{
+  "strategy": "same_file_itemized",
+  "answers": {
+    "12": "\\frac{1}{2}",
+    "13": "[-1,2]"
+  }
+}

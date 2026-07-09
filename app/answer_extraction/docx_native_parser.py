@@ -5,12 +5,13 @@ from pathlib import Path
 from xml.etree import ElementTree as ET
 
 from app.answer_extraction.document_model import DocumentCell, DocumentModel, DocumentTable, ParagraphBlock, TableBlock
+from app.answer_extraction.parser_errors import CorruptDocumentError, UnsupportedDocumentError
 from app.answer_extraction.text_normalizer import normalize_text
 
 NS = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
 
 
-class DocxParseError(ValueError):
+class DocxParseError(CorruptDocumentError):
     pass
 
 
@@ -36,7 +37,7 @@ def parse_docx(path: str | Path) -> DocumentModel:
     if not docx_path.exists():
         raise DocxParseError("docx file does not exist")
     if docx_path.suffix.lower() != ".docx":
-        raise DocxParseError("not a docx file")
+        raise UnsupportedDocumentError("not a docx file")
     try:
         with zipfile.ZipFile(docx_path) as archive:
             xml_bytes = archive.read("word/document.xml")

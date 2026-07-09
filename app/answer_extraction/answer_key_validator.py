@@ -25,6 +25,14 @@ class ValidationReport:
         }
 
 
+def enforce_evidence_required(candidate, proposed_status: str) -> tuple[str, list[str], list[dict[str, object]]]:
+    if proposed_status in {"accepted", "accepted_with_warnings"} and not candidate.evidence_text:
+        return "needs_review", ["missing_evidence_for_accepted_answer"], [
+            {"type": "missing_evidence_for_accepted_answer", "question_no": candidate.question_no}
+        ]
+    return proposed_status, [], []
+
+
 def validate_answer_key(question_index: QuestionIndex, candidate_pool: AnswerCandidatePool, alignment: AlignmentResult) -> ValidationReport:
     warnings = list(alignment.warnings)
     blocking = list(alignment.blocking_errors)
@@ -38,31 +46,34 @@ def validate_answer_key(question_index: QuestionIndex, candidate_pool: AnswerCan
             continue
         if candidate.blocking_errors:
             blocking.extend(candidate.blocking_errors)
-        if statuses.get(question_no) == "accepted" and not candidate.evidence_text:
-            review_items.append({"type": "missing_evidence", "question_no": question_no})
         if candidate.source_kind == "llm_candidate":
             warnings.append("llm_candidate_used")
             review_items.append({"type": "llm_candidate_requires_review", "question_no": question_no})
-            statuses[question_no] = "needs_review"
+            proposed = "needs_review"
+            statuses[question_no] = proposed
             continue
         if question.question_type == "single_choice" and len(candidate.normalized_answer) > 1:
             blocking.append("single_choice_multi_answer")
-            statuses[question_no] = "blocked"
+            proposed = "blocked"
         elif question.question_type == "multi_choice" and len(candidate.normalized_answer) == 1:
             warnings.append("multi_choice_single_letter")
-            statuses[question_no] = "accepted_with_warnings"
+            proposed = "accepted_with_warnings"
         elif question.question_type == "blank" and candidate.normalized_answer:
             if candidate.normalized_answer in {"A", "B", "C", "D"}:
                 review_items.append({"type": "question_type_mismatch", "question_no": question_no})
-                statuses[question_no] = "needs_review"
+                proposed = "needs_review"
             else:
                 warnings.append("fill_answer_low_confidence")
-                statuses[question_no] = "accepted_with_warnings"
+                proposed = "accepted_with_warnings"
         elif question.question_type in {"solution", "unknown"} and candidate.normalized_answer in {"A", "B", "C", "D"}:
             review_items.append({"type": "question_type_mismatch", "question_no": question_no})
-            statuses[question_no] = "needs_review"
+            proposed = "needs_review"
         else:
-            statuses[question_no] = "accepted"
+            proposed = "accepted"
+        final_status, evidence_warnings, evidence_reviews = enforce_evidence_required(candidate, proposed)
+        warnings.extend(evidence_warnings)
+        review_items.extend(evidence_reviews)
+        statuses[question_no] = final_status
     for question_no in alignment.missing_answers:
         review_items.append({"type": "missing_answer", "question_no": question_no})
     for question_no in candidate_pool.conflicting_question_numbers():

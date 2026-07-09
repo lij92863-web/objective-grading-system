@@ -16,6 +16,8 @@ from app.answer_extraction.document_model import DocumentModel
 from app.answer_extraction.document_model_loader import load_document_model_json
 from app.answer_extraction.extraction_report import ExtractionReport
 from app.answer_extraction.extraction_strategy_router import ExtractionStrategy, choose_strategy
+from app.answer_extraction.evidence_invariant import enforce_result_evidence_invariant
+from app.answer_extraction.extraction_result_schema import with_schema_defaults
 from app.answer_extraction.file_role_classifier import FileRole, classify_file_role
 from app.answer_extraction.itemized_answer_extractor import extract_itemized_answers
 from app.answer_extraction.question_index_builder import QuestionIndex, build_question_index
@@ -42,6 +44,7 @@ class ExtractionResult:
 
     def to_safe_dict(self) -> dict[str, Any]:
         accepted_count = self.report.get("accepted_count", 0) if isinstance(self.report, dict) else 0
+        report_blocking = self.report.get("blocking_errors", []) if isinstance(self.report, dict) else []
         evidence_summary = {
             question_no: {
                 "source_kind": answer.get("source_kind", ""),
@@ -51,6 +54,7 @@ class ExtractionResult:
             for question_no, answer in self.answers.items()
         }
         return {
+            "schema_version": "answer_extraction.v3",
             "run_id": self.run_id,
             "strategy": self.strategy,
             "status": self.status,
@@ -58,15 +62,18 @@ class ExtractionResult:
             "answer_count": self.answer_count,
             "accepted_count": accepted_count,
             "review_count": len(self.review_items),
+            "blocked_count": len(report_blocking or self.alignment_report.get("blocking_errors", [])),
             "questions": self.questions,
             "answers": self.answers,
             "alignment_report": self.alignment_report,
             "missing_answers": self.alignment_report.get("missing_answers", []),
             "unexpected_answers": self.alignment_report.get("unexpected_answers", []),
             "blocking_errors": self.alignment_report.get("blocking_errors", []),
+            "warnings": self.alignment_report.get("warnings", []),
             "review_items": self.review_items,
             "evidence_summary": evidence_summary,
             "report": self.report,
+            "diagnostics": {"evidence_missing_count": self.report.get("evidence_missing_count", 0) if isinstance(self.report, dict) else 0},
         }
 
 
@@ -152,10 +159,19 @@ def extract_answer_key(files: list[str] | list[DocumentModel]) -> ExtractionResu
     candidate_pool = resolve_candidate_conflicts(_extract_candidates(strategy_result.strategy, documents, roles)).candidate_pool
     alignment = align_by_question_no(question_index, candidate_pool)
     validation = validate_answer_key(question_index, candidate_pool, alignment)
+    if strategy_result.strategy == ExtractionStrategy.MIXED_OR_UNKNOWN and not question_index.questions and not candidate_pool.question_numbers():
+        validation.status = "needs_review"
+        validation.review_items.append({"type": "unknown_file_role"})
     answers = _answers_dict(question_index, candidate_pool, validation.answer_statuses)
     file_roles = {document.source_file: role.role.value for document, role in zip(documents, roles)}
     answer_layouts = {document.source_file: layout.layout.value for document, layout in zip(documents, layouts)}
     accepted_count = sum(1 for value in answers.values() if value["validation_status"] == "accepted")
+    ignored_grid_count = sum(
+        1
+        for layout in layouts
+        for semantic in layout.table_semantics.values()
+        if semantic.value == "student_answer_grid"
+    )
     report = ExtractionReport(
         run_id=run_id,
         strategy=strategy_result.strategy.value,
@@ -170,8 +186,14 @@ def extract_answer_key(files: list[str] | list[DocumentModel]) -> ExtractionResu
         warnings=validation.warnings,
         blocking_errors=validation.blocking_errors,
         review_items=validation.review_items,
+        ignored_student_answer_grid_count=ignored_grid_count,
+        explicit_bracket_answer_count=sum(1 for answer in answers.values() if answer["source_kind"] == "explicit_bracket_answer"),
+        answer_table_count=sum(1 for answer in answers.values() if answer["source_kind"] == "answer_table"),
+        itemized_answer_count=sum(1 for answer in answers.values() if answer["source_kind"] in {"explicit_bracket_answer", "explicit_answer", "explicit_answer_colon", "short_itemized", "guxuan", "gu_daanwei"}),
+        blank_answer_count=sum(1 for answer in answers.values() if answer["answer"] and not set(answer["answer"]).issubset(set("ABCD"))),
+        conflict_count=len(alignment.duplicate_answers),
     )
-    return ExtractionResult(
+    extraction = ExtractionResult(
         run_id=run_id,
         strategy=strategy_result.strategy.value,
         status=validation.status,
@@ -180,4 +202,15 @@ def extract_answer_key(files: list[str] | list[DocumentModel]) -> ExtractionResu
         alignment_report=alignment.to_dict(),
         review_items=validation.review_items,
         report=report.to_safe_dict(),
+    )
+    safe = with_schema_defaults(enforce_result_evidence_invariant(extraction.to_safe_dict()))
+    return ExtractionResult(
+        run_id=safe["run_id"],
+        strategy=safe["strategy"],
+        status=safe["status"],
+        questions=safe.get("questions", []),
+        answers=safe.get("answers", {}),
+        alignment_report=safe.get("alignment_report", {}),
+        review_items=safe.get("review_items", []),
+        report={**report.to_safe_dict(), "evidence_missing_count": len(safe.get("evidence_invariant_violations", []))},
     )

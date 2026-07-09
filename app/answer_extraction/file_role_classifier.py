@@ -29,7 +29,7 @@ def classify_file_role(document: DocumentModel) -> FileRoleResult:
     question_score = 0
     answer_score = 0
     reasons: list[str] = []
-    if any(token in text for token in ("一、", "单选题", "多选题", "填空题", "解答题")):
+    if any(token in text for token in ("一、", "单选题", "单项选择", "多选题", "多项选择", "填空题", "解答题")):
         question_score += 3
         reasons.append("question section heading")
     if sum(text.count(marker) for marker in ("A.", "B.", "C.", "D.", "A、", "B、", "C、", "D、")) >= 2:

@@ -42,9 +42,9 @@ class QuestionIndex:
 
 
 def _question_type_from_section(section: str) -> str:
-    if "单选" in section:
+    if "单选" in section or "单项选择" in section:
         return "single_choice"
-    if "多选" in section:
+    if "多选" in section or "多项选择" in section:
         return "multi_choice"
     if "填空" in section:
         return "blank"
@@ -66,7 +66,7 @@ def build_question_index(document: DocumentModel) -> QuestionIndex:
         text = normalize_text(block.text)
         if any(token in text for token in ("参考答案", "答案解析", "【答案】", "故选")):
             break
-        if re.match(r"^[一二三四五六七八九十]+[、,].*(单选|多选|填空|解答)", text):
+        if re.match(r"^[一二三四五六七八九十]+[、,].*(单选|单项选择|多选|多项选择|填空|解答|证明)", text):
             current_section = block.text
             continue
         if re.match(r"^20\d{2}年", text):
@@ -89,7 +89,7 @@ def build_question_index(document: DocumentModel) -> QuestionIndex:
             f_text = normalize_text(following.text)
             if following.block_type == "table":
                 continue
-            if re.match(r"^[一二三四五六七八九十]+[、,].*(单选|多选|填空|解答)", f_text):
+            if re.match(r"^[一二三四五六七八九十]+[、,].*(单选|单项选择|多选|多项选择|填空|解答|证明)", f_text):
                 break
             if re.match(r"^(\d{1,3})[\.\、]\s*(?!【答案】)(.+)", f_text) or any(token in f_text for token in ("参考答案", "答案解析", "【答案】", "故选")):
                 break

@@ -1,0 +1,1 @@
+{"expected_strategy": "same_file_itemized", "expected_status": "accepted_with_warnings", "expected_answers": {"12": "\\frac{1}{2}", "13": "x>1"}, "expected_evidence_contains": "【答案】"}

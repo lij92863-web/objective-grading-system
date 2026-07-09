@@ -13,7 +13,7 @@ class AnswerItemBlock:
     blocks: list[DocumentBlock]
 
 
-START_RE = re.compile(r"^(\d{1,3})[\.\、]\s*(?:【答案】|〖答案〗|\[答案\]|答案|[A-Da-d]{1,4}\b|故选|故答案为)")
+START_RE = re.compile(r"^(\d{1,3})[\.\、,]\s*(?:【答案】|〖答案〗|\[答案\]|答案|[A-Da-d]{1,4}\s*$|故选|故答案为)")
 
 
 def segment_itemized_blocks(blocks: list[DocumentBlock], expected_questions: set[int] | None = None) -> list[AnswerItemBlock]:

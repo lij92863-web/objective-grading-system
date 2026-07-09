@@ -66,6 +66,6 @@ def classify_answer_layout(document: DocumentModel) -> AnswerLayoutResult:
         return AnswerLayoutResult(AnswerLayout.BOXED_TABLE, 0.9, semantics, reasons)
     if has_itemized:
         return AnswerLayoutResult(AnswerLayout.ITEMIZED_EXPLANATION, 0.86, semantics, reasons)
-    if any(token in text for token in ("单选题", "多选题", "填空题", "解答题")):
+    if any(token in text for token in ("单选题", "单项选择", "多选题", "多项选择", "填空题", "解答题")):
         return AnswerLayoutResult(AnswerLayout.NONE, 0.8, semantics, reasons)
     return AnswerLayoutResult(AnswerLayout.UNKNOWN, 0.3, semantics, reasons)

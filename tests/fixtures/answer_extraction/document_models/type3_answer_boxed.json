@@ -1,0 +1,25 @@
+{
+  "document_id": "type3_answer_boxed",
+  "source_file": "type3_answer_boxed.json",
+  "blocks": [
+    {"block_id": "p_001", "block_type": "paragraph", "text": "参考答案", "raw_text": "参考答案", "order_index": 1},
+    {"block_id": "tb_002", "block_type": "table", "text": "题号 | 答案\n1 | B\n2 | C", "raw_text": "题号 | 答案\n1 | B\n2 | C", "order_index": 2, "table_id": "t_ans"}
+  ],
+  "tables": [
+    {
+      "table_id": "t_ans",
+      "row_count": 3,
+      "col_count": 2,
+      "order_index": 2,
+      "cells": [
+        {"row_index": 0, "col_index": 0, "text": "题号", "raw_text": "题号"},
+        {"row_index": 0, "col_index": 1, "text": "答案", "raw_text": "答案"},
+        {"row_index": 1, "col_index": 0, "text": "1", "raw_text": "1"},
+        {"row_index": 1, "col_index": 1, "text": "B", "raw_text": "B"},
+        {"row_index": 2, "col_index": 0, "text": "2", "raw_text": "2"},
+        {"row_index": 2, "col_index": 1, "text": "C", "raw_text": "C"}
+      ]
+    }
+  ],
+  "metadata": {}
+}

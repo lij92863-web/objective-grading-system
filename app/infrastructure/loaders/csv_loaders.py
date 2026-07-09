@@ -54,6 +54,7 @@ class QuestionSpec:
     answer_aliases: Tuple[str, ...] = ()
     tolerance: Optional[float] = None
     status: str = "normal"
+    question_type: str = ""
 
 
 @dataclasses.dataclass(frozen=True)

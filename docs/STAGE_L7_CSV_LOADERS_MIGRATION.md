@@ -88,4 +88,13 @@ cells, missing files, and missing question fields against the legacy baseline.
 
 ## L7D Workflow Cutover Result
 
-Pending.
+`app/workflow.py` now imports `load_answer_key` and `load_submissions` from
+`app.infrastructure.loaders.csv_loaders`.
+
+Cutover notes:
+
+- `workflow.py` no longer calls `legacy.load_answer_key`.
+- `workflow.py` no longer calls `legacy.load_submissions`.
+- `objective_grader.py` was not changed in L7D because it does not call loaders
+  directly. It delegates to `run_grading`.
+- CLI arguments and output filenames are unchanged.

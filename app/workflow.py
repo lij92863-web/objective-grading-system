@@ -32,6 +32,10 @@ from app.application.use_cases.report_builders.simple_score_rows import (
 from app.application.use_cases.report_builders.item_stats import (
     build_item_stats,
 )
+from app.infrastructure.loaders.csv_loaders import (
+    load_answer_key,
+    load_submissions,
+)
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -398,8 +402,8 @@ def run_grading(
     exam_date = exam_date or date.today().isoformat()
     run_id = run_id or make_run_id()
 
-    answer_key = legacy.load_answer_key(answer_key_path)
-    submissions = legacy.load_submissions(submissions_path, answer_key)
+    answer_key = load_answer_key(answer_key_path)
+    submissions = load_submissions(submissions_path, answer_key)
     results = legacy.grade_all(answer_key, submissions)
     meta = legacy.ExamMeta(exam_name=exam_name, class_name=class_name, subject=subject, exam_date=exam_date)
     profiles = legacy.build_knowledge_profiles(answer_key, results, weak_threshold=weak_threshold)

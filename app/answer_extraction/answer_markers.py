@@ -32,3 +32,25 @@ def is_real_chinese_answer_marker(text: str) -> bool:
 
 # Pre-built regex for consumers that need the compiled pattern.
 ANSWER_MARKER_RE = re.compile(build_answer_marker_regex())
+
+
+def _assert_marker_codepoints() -> None:
+    """Import-time guard against accidental 【】/〖〗 bracket swaps.
+
+    REAL must use black lenticular brackets 【】(U+3010/U+3011);
+    compatibility markers must use white lenticular brackets 〖〗(U+3016/U+3017).
+    """
+    if not (REAL_CHINESE_ANSWER_MARKER[0] == "\u3010" and REAL_CHINESE_ANSWER_MARKER[-1] == "\u3011"):
+        raise AssertionError(
+            "REAL_CHINESE_ANSWER_MARKER must use black lenticular brackets "
+            "\u3010\u3011 (U+3010/U+3011), got %r" % REAL_CHINESE_ANSWER_MARKER
+        )
+    for _marker in COMPAT_ANSWER_MARKERS:
+        if _marker[0] == "\u3010" and _marker[-1] == "\u3011":
+            raise AssertionError(
+                "Compatibility marker must not use black lenticular brackets "
+                "\u3010\u3011 (U+3010/U+3011), got %r" % _marker
+            )
+
+
+_assert_marker_codepoints()

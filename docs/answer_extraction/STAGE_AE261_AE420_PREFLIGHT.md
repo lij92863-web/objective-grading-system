@@ -1,24 +1,34 @@
 # Stage AE261-AE420 Preflight
 
-Branch: main
+**Date:** 2026-07-09
 
-Start commit: 66daf0f fix harden answer extraction algorithm v2
+## Git Status
+- **Branch:** main
+- **Latest commit:** `2572093 fix harden answer extraction v3`
+- **Start commit:** `66daf0f fix harden answer extraction algorithm v2`
+- **Working tree:** clean
 
-Initial git status: clean
+## Test Results
+- `python run_tests.py`: **1038 tests OK (skipped=5)**
 
-Preflight commands:
+## CLI Smoke - All 4 Types Pass
+| Type | Strategy | Status | Q | A | Accepted | Grid Ignored |
+|------|----------|--------|---|---|----------|---------------|
+| 1 same_file_boxed | same_file_boxed | accepted | 3 | 3 | 3 | 0 |
+| 2 same_file_itemized | same_file_itemized | accepted | 2 | 2 | 2 | 0 |
+| 3 split_file_boxed | split_file_boxed | accepted | 3 | 3 | 3 | 0 |
+| 4 split_file_itemized | split_file_itemized | accepted | 2 | 2 | 2 | 1 |
 
-- `git status --short`: clean
-- `git branch --show-current`: main
-- `git log --oneline -15`: latest `66daf0f`
-- `python run_tests.py`: passed, 1019 tests OK, 5 skipped
-- `python -m unittest discover`: passed, 1006 tests OK, 5 skipped
-- v2 type1/type2/type3/type4 extraction CLIs: passed
-- `python scripts/run_local_answer_extraction_smoke.py --json`: passed with `status: skipped` because local samples were missing
+## Local Smoke
+- status: `skipped` (local samples missing)
 
-Previous P0 caveats:
+## P0 Caveats from Previous Round
+1. **P0-1:** `【答案】` bracket NOT covered — only `〖答案〗` in fixtures
+2. **P0-2:** Evidence guard — verify no accepted answer without evidence_text
 
-- Real `【答案】` needed direct P0 coverage, not only adjacent bracket variants.
-- Any accepted or accepted-with-warnings answer needed a hard evidence invariant.
+## Current Round Goals
+Fix both P0s + complete AE261-AE420 algorithm hardening
 
-Allowed paths and forbidden paths remain the same as the task file. This stage does not call real APIs, read `.env`, connect grading/workflow/web, or generate formal score reports.
+## Allowed/Forbidden Paths
+- Allowed: `app/answer_extraction/**`, `tests/**`, `scripts/**`, `docs/answer_extraction/**`
+- Forbidden: `legacy/**`, `app/compat/**`, `app/domain/grading/**`, `app/workflow.py`, `objective_grader.py`, `web/**`

@@ -4,6 +4,8 @@ import re
 
 REAL_CHINESE_ANSWER_MARKER = "【答案】"
 
+# AE590 verified literal marker: REAL must be 【答案】 (U+3010/U+3011).
+
 COMPAT_ANSWER_MARKERS = (
     "〖答案〗",
     "[答案]",

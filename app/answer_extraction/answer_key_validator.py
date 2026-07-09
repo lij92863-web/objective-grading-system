@@ -5,6 +5,13 @@ from dataclasses import dataclass, field
 from app.answer_extraction.answer_candidate_pool import AnswerCandidatePool
 from app.answer_extraction.cross_file_aligner import AlignmentResult
 from app.answer_extraction.question_index_builder import QuestionIndex
+from app.answer_extraction.status_model import (
+    STATUS_ACCEPTED,
+    STATUS_ACCEPTED_WITH_WARNINGS,
+    STATUS_BLOCKED,
+    STATUS_NEEDS_REVIEW,
+    FINAL_ACCEPTED_STATUSES,
+)
 
 
 @dataclass
@@ -26,8 +33,8 @@ class ValidationReport:
 
 
 def enforce_evidence_required(candidate, proposed_status: str) -> tuple[str, list[str], list[dict[str, object]]]:
-    if proposed_status in {"accepted", "accepted_with_warnings"} and not candidate.evidence_text:
-        return "needs_review", ["missing_evidence_for_accepted_answer"], [
+    if proposed_status in FINAL_ACCEPTED_STATUSES and not candidate.evidence_text:
+        return STATUS_NEEDS_REVIEW, ["missing_evidence_for_accepted_answer"], [
             {"type": "missing_evidence_for_accepted_answer", "question_no": candidate.question_no}
         ]
     return proposed_status, [], []
@@ -49,27 +56,27 @@ def validate_answer_key(question_index: QuestionIndex, candidate_pool: AnswerCan
         if candidate.source_kind == "llm_candidate":
             warnings.append("llm_candidate_used")
             review_items.append({"type": "llm_candidate_requires_review", "question_no": question_no})
-            proposed = "needs_review"
+            proposed = STATUS_NEEDS_REVIEW
             statuses[question_no] = proposed
             continue
         if question.question_type == "single_choice" and len(candidate.normalized_answer) > 1:
             blocking.append("single_choice_multi_answer")
-            proposed = "blocked"
+            proposed = STATUS_BLOCKED
         elif question.question_type == "multi_choice" and len(candidate.normalized_answer) == 1:
             warnings.append("multi_choice_single_letter")
-            proposed = "accepted_with_warnings"
+            proposed = STATUS_ACCEPTED_WITH_WARNINGS
         elif question.question_type == "blank" and candidate.normalized_answer:
             if candidate.normalized_answer in {"A", "B", "C", "D"}:
                 review_items.append({"type": "question_type_mismatch", "question_no": question_no})
-                proposed = "needs_review"
+                proposed = STATUS_NEEDS_REVIEW
             else:
                 warnings.append("fill_answer_low_confidence")
-                proposed = "accepted_with_warnings"
+                proposed = STATUS_ACCEPTED_WITH_WARNINGS
         elif question.question_type in {"solution", "unknown"} and candidate.normalized_answer in {"A", "B", "C", "D"}:
             review_items.append({"type": "question_type_mismatch", "question_no": question_no})
-            proposed = "needs_review"
+            proposed = STATUS_NEEDS_REVIEW
         else:
-            proposed = "accepted"
+            proposed = STATUS_ACCEPTED
         final_status, evidence_warnings, evidence_reviews = enforce_evidence_required(candidate, proposed)
         warnings.extend(evidence_warnings)
         review_items.extend(evidence_reviews)
@@ -81,11 +88,11 @@ def validate_answer_key(question_index: QuestionIndex, candidate_pool: AnswerCan
     blocking = sorted(set(blocking))
     warnings = sorted(set(warnings))
     if blocking:
-        status = "blocked"
+        status = STATUS_BLOCKED
     elif review_items:
-        status = "needs_review"
+        status = STATUS_NEEDS_REVIEW
     elif warnings:
-        status = "accepted_with_warnings"
+        status = STATUS_ACCEPTED_WITH_WARNINGS
     else:
-        status = "accepted"
+        status = STATUS_ACCEPTED
     return ValidationReport(status, warnings, blocking, review_items, statuses)

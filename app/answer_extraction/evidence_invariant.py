@@ -1,6 +1,13 @@
 from __future__ import annotations
 
-ACCEPTED_STATUSES = {"accepted", "accepted_with_warnings"}
+from app.answer_extraction.status_model import (
+    FINAL_ACCEPTED_STATUSES,
+    STATUS_ACCEPTED,
+    STATUS_NEEDS_REVIEW,
+)
+
+# Kept for backward compatibility with existing callers.
+ACCEPTED_STATUSES = set(FINAL_ACCEPTED_STATUSES)
 
 
 def answer_has_source(answer: dict[str, object]) -> bool:
@@ -45,8 +52,8 @@ def enforce_result_evidence_invariant(result: dict[str, object]) -> dict[str, ob
     for violation in violations:
         question_no = str(violation.get("question_no"))
         answer = dict(answers.get(question_no, {}))
-        if answer.get("validation_status") in ACCEPTED_STATUSES:
-            answer["validation_status"] = "needs_review"
+        if answer.get("validation_status") in FINAL_ACCEPTED_STATUSES:
+            answer["validation_status"] = STATUS_NEEDS_REVIEW
             answers[question_no] = answer
     review_items = list(result.get("review_items", []))
     review_items.extend(violations)
@@ -54,6 +61,6 @@ def enforce_result_evidence_invariant(result: dict[str, object]) -> dict[str, ob
     result["review_items"] = review_items
     result["review_count"] = len(review_items)
     result["evidence_invariant_violations"] = violations
-    if result.get("status") == "accepted":
-        result["status"] = "needs_review"
+    if result.get("status") == STATUS_ACCEPTED:
+        result["status"] = STATUS_NEEDS_REVIEW
     return result

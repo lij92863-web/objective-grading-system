@@ -21,6 +21,7 @@ from app.answer_extraction.extraction_result_schema import with_schema_defaults
 from app.answer_extraction.file_role_classifier import FileRole, classify_file_role
 from app.answer_extraction.itemized_answer_extractor import extract_itemized_answers
 from app.answer_extraction.question_index_builder import QuestionIndex, build_question_index
+from app.answer_extraction.status_model import STATUS_ACCEPTED, STATUS_NEEDS_REVIEW
 
 
 @dataclass

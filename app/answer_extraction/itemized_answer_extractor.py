@@ -4,10 +4,12 @@ import re
 from dataclasses import dataclass, field
 
 from app.answer_extraction.answer_candidate_pool import AnswerCandidate, AnswerCandidatePool
+from app.answer_extraction.answer_markers import ANSWER_MARKER_RE
 from app.answer_extraction.answer_normalizer import normalize_answer
 from app.answer_extraction.answer_source_policy import confidence_for_source
 from app.answer_extraction.document_model import DocumentModel, SourceSpan
 from app.answer_extraction.itemized_block_segmenter import segment_itemized_blocks
+from app.answer_extraction.status_model import STATUS_ACCEPTED, STATUS_BLOCKED
 from app.answer_extraction.text_normalizer import normalize_text
 
 
@@ -17,8 +19,10 @@ class ItemizedAnswerExtractionResult:
     warnings: list[str] = field(default_factory=list)
 
 
+ANSWER_MARKER_PATTERN = ANSWER_MARKER_RE.pattern
+
 PATTERNS = [
-    ("explicit_bracket_answer", re.compile(r"^(\d{1,3})[\.\、,]\s*(?:【答案】|〖答案〗|\[答案\])[:：]?\s*(.+)$")),
+    ("explicit_bracket_answer", re.compile(rf"^(\d{{1,3}})[\.\、,]\s*{ANSWER_MARKER_PATTERN}[:：]?\s*(.+?)\s*$")),
     ("explicit_answer", re.compile(r"^(\d{1,3})[\.\、,]\s*答案(?:为)?[:：]?\s*(.+)$")),
     ("short_itemized", re.compile(r"^(\d{1,3})[\.\、,]\s*([A-Da-d]{1,4})\s*$")),
     ("guxuan", re.compile(r"^(\d{1,3})[\.\、,].*故选[:：]?\s*([A-Da-d]{1,4})")),
@@ -34,7 +38,7 @@ CONFIDENCE = {
 }
 
 INLINE_WITHOUT_QNO = [
-    ("explicit_bracket_answer", re.compile(r"(?:【答案】|〖答案〗|\[答案\])[:：]?\s*(.+)$")),
+    ("explicit_bracket_answer", re.compile(rf"^\s*{ANSWER_MARKER_PATTERN}\s*[:：]?\s*(.+?)\s*$")),
     ("explicit_answer_colon", re.compile(r"答案(?:为)?[:：]\s*(.+)$")),
     ("guxuan", re.compile(r"故选[:：]?\s*([A-Da-d]{1,4})")),
     ("gu_daanwei", re.compile(r"故答案(?:为|是)?[:：]?\s*(.+)$")),

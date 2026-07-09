@@ -18,8 +18,34 @@ LONG_LINE_WHITELIST = {
     # Real client has long f-strings for error messages
     "real_client.py",
     # CSS strings from legacy — single-line compressed, not code
-    "html_helpers.py",
 }
+
+HTML_HELPER_ALLOWED_LONG_LINE_FUNCTIONS = {
+    "report_css",
+    "advanced_dashboard_css",
+    "index_css",
+}
+
+
+def _function_line_ranges(path: Path) -> dict[str, range]:
+    import ast
+
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    ranges: dict[str, range] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and hasattr(node, "end_lineno"):
+            ranges[node.name] = range(node.lineno, node.end_lineno + 1)
+    return ranges
+
+
+def _is_allowed_long_line(path: Path, lineno: int) -> bool:
+    if path.name != "html_helpers.py":
+        return False
+    ranges = _function_line_ranges(path)
+    return any(
+        lineno in ranges.get(function_name, range(0))
+        for function_name in HTML_HELPER_ALLOWED_LONG_LINE_FUNCTIONS
+    )
 
 
 def _target_files() -> list[Path]:
@@ -57,7 +83,10 @@ class CodeReadabilityGuardTests(unittest.TestCase):
                 for lineno, line in enumerate(
                     f.read_text(encoding="utf-8").splitlines(), start=1
                 ):
-                    if len(line) > MAX_LINE_LENGTH:
+                    if (
+                        len(line) > MAX_LINE_LENGTH
+                        and not _is_allowed_long_line(f, lineno)
+                    ):
                         long_lines.append(lineno)
                 self.assertEqual(
                     [], long_lines,

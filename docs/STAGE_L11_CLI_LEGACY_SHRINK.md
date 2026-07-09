@@ -44,3 +44,30 @@ Candidate for L11B:
 L11A conclusion: `objective_grader.py` can likely shrink from a star import to
 an explicit whitelist while preserving `legacy.create_sample_files` as the only
 direct legacy call for sample/demo compatibility.
+
+## L11B Shrink
+
+`objective_grader.py` no longer uses:
+
+- `from legacy.objective_grader_legacy import *`
+
+It now keeps a `COMPAT_EXPORTS` tuple and explicitly re-exports those names
+from `legacy.objective_grader_legacy`. This preserves the previous compatibility
+surface without using a star import.
+
+Direct legacy calls remaining in the CLI:
+
+- `legacy.create_sample_files(...)` for `--make-samples`;
+- `legacy.create_sample_files(...)` for the no-input built-in demo.
+
+No direct calls remain in `objective_grader.py` to legacy loaders, report
+writers, grading core, or analysis builders.
+
+Guard coverage:
+
+- `tests/test_objective_grader_legacy_dependency_guard.py` forbids the legacy
+  star import and allows only `create_sample_files` direct legacy calls.
+- `tests/test_cli_compatibility_exports.py` verifies common compatibility
+  exports, CLI options, and `--make-samples` still work.
+
+No CLI arguments or report output formats were changed.

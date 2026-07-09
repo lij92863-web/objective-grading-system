@@ -1,0 +1,83 @@
+{
+  "sheet_id": "sheet-007",
+  "template_id": "synthetic-v1",
+  "student": {
+    "name": "无名07"
+  },
+  "answers": [
+    {
+      "question": 0,
+      "selected": "A",
+      "mark_type": "strong",
+      "expected_option": "D"
+    },
+    {
+      "question": 1,
+      "selected": "B",
+      "mark_type": "strong",
+      "expected_option": "C"
+    },
+    {
+      "question": 2,
+      "selected": "C",
+      "mark_type": "strong",
+      "expected_option": "B"
+    },
+    {
+      "question": 3,
+      "selected": "D",
+      "mark_type": "strong",
+      "expected_option": "A"
+    },
+    {
+      "question": 4,
+      "selected": "A",
+      "mark_type": "strong",
+      "expected_option": "D"
+    },
+    {
+      "question": 5,
+      "selected": "B",
+      "mark_type": "strong",
+      "expected_option": "C"
+    },
+    {
+      "question": 6,
+      "selected": "C",
+      "mark_type": "strong",
+      "expected_option": "B"
+    },
+    {
+      "question": 7,
+      "selected": "D",
+      "mark_type": "strong",
+      "expected_option": "A"
+    },
+    {
+      "question": 8,
+      "selected": "A",
+      "mark_type": "strong",
+      "expected_option": "D"
+    },
+    {
+      "question": 9,
+      "selected": "B",
+      "mark_type": "strong",
+      "expected_option": "C"
+    },
+    {
+      "question": 10,
+      "selected": "C",
+      "mark_type": "strong",
+      "expected_option": "B"
+    },
+    {
+      "question": 11,
+      "selected": "D",
+      "mark_type": "strong",
+      "expected_option": "A"
+    }
+  ],
+  "perturbation": "box_blur",
+  "seed": 67778
+}

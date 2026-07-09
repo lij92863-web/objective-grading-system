@@ -1,0 +1,104 @@
+{
+  "template_id": "synthetic-v1",
+  "schema_version": 1,
+  "seed": 12345,
+  "count": 16,
+  "sheets": [
+    {
+      "sheet_id": "sheet-000",
+      "perturbation": "clean",
+      "png": "sheet-000.png",
+      "gt": "sheet-000.gt.json"
+    },
+    {
+      "sheet_id": "sheet-001",
+      "perturbation": "clean",
+      "png": "sheet-001.png",
+      "gt": "sheet-001.gt.json"
+    },
+    {
+      "sheet_id": "sheet-002",
+      "perturbation": "clean",
+      "png": "sheet-002.png",
+      "gt": "sheet-002.gt.json"
+    },
+    {
+      "sheet_id": "sheet-003",
+      "perturbation": "clean",
+      "png": "sheet-003.png",
+      "gt": "sheet-003.gt.json"
+    },
+    {
+      "sheet_id": "sheet-004",
+      "perturbation": "clean",
+      "png": "sheet-004.png",
+      "gt": "sheet-004.gt.json"
+    },
+    {
+      "sheet_id": "sheet-005",
+      "perturbation": "skew_x",
+      "png": "sheet-005.png",
+      "gt": "sheet-005.gt.json"
+    },
+    {
+      "sheet_id": "sheet-006",
+      "perturbation": "rotate_small",
+      "png": "sheet-006.png",
+      "gt": "sheet-006.gt.json"
+    },
+    {
+      "sheet_id": "sheet-007",
+      "perturbation": "box_blur",
+      "png": "sheet-007.png",
+      "gt": "sheet-007.gt.json"
+    },
+    {
+      "sheet_id": "sheet-008",
+      "perturbation": "add_gaussian_noise",
+      "png": "sheet-008.png",
+      "gt": "sheet-008.gt.json"
+    },
+    {
+      "sheet_id": "sheet-009",
+      "perturbation": "contrast",
+      "png": "sheet-009.png",
+      "gt": "sheet-009.gt.json"
+    },
+    {
+      "sheet_id": "sheet-010",
+      "perturbation": "shift",
+      "png": "sheet-010.png",
+      "gt": "sheet-010.gt.json"
+    },
+    {
+      "sheet_id": "sheet-011",
+      "perturbation": "skew_x",
+      "png": "sheet-011.png",
+      "gt": "sheet-011.gt.json"
+    },
+    {
+      "sheet_id": "sheet-012",
+      "perturbation": "rotate_small",
+      "png": "sheet-012.png",
+      "gt": "sheet-012.gt.json"
+    },
+    {
+      "sheet_id": "sheet-013",
+      "perturbation": "box_blur",
+      "png": "sheet-013.png",
+      "gt": "sheet-013.gt.json"
+    },
+    {
+      "sheet_id": "sheet-014",
+      "perturbation": "contrast",
+      "png": "sheet-014.png",
+      "gt": "sheet-014.gt.json"
+    },
+    {
+      "sheet_id": "sheet-015",
+      "perturbation": "shift",
+      "png": "sheet-015.png",
+      "gt": "sheet-015.gt.json"
+    }
+  ]
+}

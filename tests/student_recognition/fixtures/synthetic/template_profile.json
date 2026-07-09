@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "template_id": "synthetic-v1",
+  "template_version": 1,
+  "canvas": {
+    "width": 240,
+    "height": 360
+  },
+  "bubble_grid": {
+    "rows": 12,
+    "cols": 4,
+    "option_labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "cell_w": 44,
+    "cell_h": 26,
+    "origin_x": 36,
+    "origin_y": 48,
+    "bubble_radius": 6
+  },
+  "questions": 12,
+  "identity_roi": {
+    "x": 20,
+    "y": 12,
+    "w": 200,
+    "h": 24
+  }
+}

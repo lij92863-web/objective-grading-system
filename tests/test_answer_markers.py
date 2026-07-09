@@ -52,6 +52,24 @@ class AnswerMarkersTests(unittest.TestCase):
         self.assertEqual(len(ANSWER_MARKERS), 3)
         self.assertEqual(len(COMPAT_ANSWER_MARKERS), 2)
 
+    def test_real_chinese_answer_marker_is_literal_real_marker(self):
+        assert REAL_CHINESE_ANSWER_MARKER == "【答案】"
+
+    def test_real_marker_is_first_priority(self):
+        assert ANSWER_MARKERS[0] == "【答案】"
+
+    def test_compat_markers_do_not_include_real_marker(self):
+        assert "〖答案〗" in COMPAT_ANSWER_MARKERS
+        assert "[答案]" in COMPAT_ANSWER_MARKERS
+        assert "【答案】" not in COMPAT_ANSWER_MARKERS
+
+    def test_marker_regex_matches_real_and_compat_markers(self):
+        import re
+        pattern = re.compile(build_answer_marker_regex())
+        assert pattern.search("1.【答案】B")
+        assert pattern.search("1.〖答案〗B")
+        assert pattern.search("1.[答案]B")
+
 
 if __name__ == "__main__":
     unittest.main()

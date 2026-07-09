@@ -9,7 +9,7 @@ from collections import Counter, defaultdict
 from datetime import date, datetime
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from app.validators import has_blocking_errors
 from app.domain.grading import grade_all

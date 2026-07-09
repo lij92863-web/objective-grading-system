@@ -26,6 +26,12 @@ from app.infrastructure.exporters.advanced_dashboard_html_exporter import (
 from app.infrastructure.exporters.report_index_html_exporter import (
     ReportIndexHtmlExporter,
 )
+from app.application.use_cases.report_builders.simple_score_rows import (
+    build_simple_score_rows,
+)
+from app.application.use_cases.report_builders.item_stats import (
+    build_item_stats,
+)
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -458,9 +464,9 @@ def run_grading(
             weak_threshold=weak_threshold,
             practice_per_tag=practice_per_tag,
         ))
-        # -- legacy Excel / HTML still needs these rows -------------------
-        simple_rows = legacy.simple_score_rows(results)
-        item_rows = legacy.item_stats(answer_key, results)
+        # -- Excel / HTML analysis rows via application builders ----------
+        simple_rows = build_simple_score_rows(results)
+        item_rows = build_item_stats(answer_key, results)
         teaching_rows = build_teaching_plan(item_rows)
         class_remedial_rows = build_class_remedial_package(profiles, teaching_rows, question_bank)
         layered_rows = build_layered_remedial_plan(results, teaching_rows)

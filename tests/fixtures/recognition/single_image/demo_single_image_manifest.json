@@ -1,0 +1,13 @@
+{
+  "manifest_version": 1,
+  "image_id": "demo-anonymous-single-image",
+  "image_path": "data/tmp/demo_anonymous_image.png",
+  "image_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "mime_type": "image/png",
+  "file_size_bytes": 123456,
+  "is_anonymous": true,
+  "contains_real_student_data": false,
+  "template_id": "demo_single_image_template_v1",
+  "roi_file": "tests/fixtures/recognition/single_image/demo_manual_roi.json",
+  "notes": "Synthetic metadata only; the image file is local and untracked."
+}

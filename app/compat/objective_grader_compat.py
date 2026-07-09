@@ -138,3 +138,9 @@ COMPAT_EXPORTS = (
 def export_compat_symbols() -> dict:
     """Return {name: obj} for all COMPAT_EXPORTS."""
     return {name: getattr(_legacy, name) for name in COMPAT_EXPORTS}
+
+
+# Expose all symbols at module level so that:
+#    from app.compat.objective_grader_compat import build_validation_report
+# works just like the old objective_grader.py did.
+globals().update(export_compat_symbols())

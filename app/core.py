@@ -20,7 +20,7 @@ from app.domain.grading import (  # noqa: F401
     score_answer_detail,
 )
 from app.domain.grading.normalize import parse_question_number  # noqa: F401
-from legacy.objective_grader_legacy import (  # noqa: F401
+from app.compat.objective_grader_compat import (  # noqa: F401
     BankQuestion,
     CHOICE_OPTIONS,
     ExamMeta,

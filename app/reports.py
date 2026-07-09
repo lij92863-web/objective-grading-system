@@ -1,6 +1,6 @@
 """HTML, CSV, and Excel report generation helpers."""
 
-from legacy.objective_grader_legacy import (  # noqa: F401
+from app.compat.objective_grader_compat import (  # noqa: F401
     html_escape,
     read_csv_for_workbook,
     write_advanced_dashboard,
@@ -11,4 +11,3 @@ from legacy.objective_grader_legacy import (  # noqa: F401
     write_workbook,
     write_xlsx,
 )
-

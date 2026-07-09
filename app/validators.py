@@ -2,7 +2,10 @@
 
 from typing import Dict, Iterable
 
-from legacy.objective_grader_legacy import build_validation_report, write_validation_report
+from app.compat.objective_grader_compat import (
+    build_validation_report,
+    write_validation_report,
+)
 
 
 BLOCKING_SCOPES = {
@@ -26,4 +29,3 @@ def is_blocking_error(row: Dict[str, object]) -> bool:
 
 def has_blocking_errors(validation_rows: Iterable[Dict[str, object]]) -> bool:
     return any(is_blocking_error(row) for row in validation_rows)
-

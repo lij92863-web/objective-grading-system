@@ -1,6 +1,6 @@
 """Class analysis, item analysis, teaching plan, and remedial suggestions."""
 
-from legacy.objective_grader_legacy import (  # noqa: F401
+from app.compat.objective_grader_compat import (  # noqa: F401
     basic_stats,
     build_class_report,
     build_correct_question_ids,
@@ -18,3 +18,6 @@ from legacy.objective_grader_legacy import (  # noqa: F401
     write_summary,
 )
 
+from app.infrastructure.exporters.detail_csv_exporter import (  # noqa: F401
+    DetailCsvExporter,
+)

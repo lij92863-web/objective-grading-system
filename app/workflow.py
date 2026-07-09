@@ -8,6 +8,7 @@ import tempfile
 from collections import Counter, defaultdict
 from datetime import date, datetime
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Dict, Iterable, List, Optional, Tuple
 
 from legacy import objective_grader_legacy as legacy
@@ -34,6 +35,19 @@ from app.application.use_cases.report_builders.simple_score_rows import (
 )
 from app.application.use_cases.report_builders.item_stats import (
     build_item_stats,
+)
+from app.application.use_cases.report_builders.knowledge_profiles import (
+    build_knowledge_profiles,
+)
+from app.application.use_cases.report_builders.validation_report import (
+    build_validation_report,
+)
+from app.application.use_cases.report_builders.basic_stats import basic_stats
+from app.application.use_cases.csv_report_pipeline import (
+    _legacy_bank_to_dict,
+    _legacy_result_to_dict,
+    _legacy_spec_to_dict,
+    _legacy_sub_to_dict,
 )
 from app.infrastructure.loaders.csv_loaders import (
     load_answer_key,
@@ -99,6 +113,46 @@ def write_dicts(path: Path, rows: List[Dict[str, object]], fields: Optional[List
 def read_csv_dicts(path: Path) -> List[Dict[str, str]]:
     with path.open("r", encoding="utf-8-sig", newline="") as handle:
         return list(csv.DictReader(handle))
+
+
+def profile_row_to_object(row: Dict[str, object]) -> object:
+    return SimpleNamespace(
+        student_id=row.get("student_id", ""),
+        name=row.get("name", ""),
+        tag=row.get("tag", ""),
+        score=row.get("score", 0),
+        max_score=row.get("max_score", 0),
+        mastery=row.get("mastery", 0),
+        question_count=row.get("question_count", 0),
+        weak=row.get("weak") in {True, "yes", "true", "1", 1},
+        mastery_level=row.get("mastery_level", ""),
+    )
+
+
+def answer_key_to_validation_dict(answer_key: object) -> Dict[str, object]:
+    return {
+        "by_number": {
+            spec.number: {
+                "question": spec.number,
+                "source_id": spec.source_id,
+                "tags": list(spec.tags),
+                "status": spec.status,
+                "points": spec.points,
+            }
+            for spec in answer_key.questions
+        },
+        "questions": [
+            {
+                "question": spec.number,
+                "source_id": spec.source_id,
+                "tags": list(spec.tags),
+                "status": spec.status,
+                "points": spec.points,
+            }
+            for spec in answer_key.questions
+        ],
+        "duplicate_questions": list(getattr(answer_key, "duplicate_questions", [])),
+    }
 
 
 def display_percent(value: object) -> str:
@@ -409,12 +463,23 @@ def run_grading(
     submissions = load_submissions(submissions_path, answer_key)
     results = legacy.grade_all(answer_key, submissions)
     meta = legacy.ExamMeta(exam_name=exam_name, class_name=class_name, subject=subject, exam_date=exam_date)
-    profiles = legacy.build_knowledge_profiles(answer_key, results, weak_threshold=weak_threshold)
+    profile_rows = build_knowledge_profiles(
+        [_legacy_spec_to_dict(spec) for spec in answer_key.questions],
+        [_legacy_result_to_dict(result) for result in results],
+        weak_threshold=weak_threshold,
+    )
+    profiles = [profile_row_to_object(row) for row in profile_rows]
     question_bank = legacy.load_question_bank(question_bank_path) if question_bank_path else None
-    validation_rows = legacy.build_validation_report(answer_key, submissions, results, profiles, question_bank)
+    validation_rows = build_validation_report(
+        answer_key_to_validation_dict(answer_key),
+        [_legacy_sub_to_dict(submission) for submission in submissions],
+        [_legacy_result_to_dict(result) for result in results],
+        profile_rows,
+        [_legacy_bank_to_dict(question) for question in question_bank] if question_bank else None,
+    )
     validation_rows.extend(extra_validation_rows or [])
 
-    stats = legacy.basic_stats(results)
+    stats = basic_stats(results)
     blocked = has_blocking_errors(validation_rows)
     temp_parent = out_dir.parent if out_dir.parent.exists() else PROJECT_ROOT
     temp_dir_path = Path(tempfile.mkdtemp(prefix=f".{out_dir.name}_", dir=str(temp_parent)))

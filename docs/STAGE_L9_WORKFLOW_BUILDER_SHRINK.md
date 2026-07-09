@@ -59,3 +59,34 @@ Risk:
 L9A conclusion: `build_knowledge_profiles`, `build_validation_report`, and
 `basic_stats` are candidates for L9B migration, but the cutover must preserve
 downstream profile object compatibility.
+
+## L9B Cutover
+
+Workflow now routes the three remaining builder-style calls away from legacy:
+
+- `build_knowledge_profiles` uses
+  `app.application.use_cases.report_builders.knowledge_profiles`.
+- `build_validation_report` uses
+  `app.application.use_cases.report_builders.validation_report`.
+- `basic_stats` uses the new
+  `app.application.use_cases.report_builders.basic_stats`.
+
+Compatibility notes:
+
+- The application knowledge-profile builder returns row dictionaries.
+- Workflow converts those rows into lightweight attribute objects before
+  passing them to existing downstream HTML/Excel/workflow helpers.
+- Validation report building uses dictionary-shaped inputs, matching the
+  existing application builder contract.
+- The CSV pipeline remains unchanged and still receives the profile objects it
+  expects.
+
+Guard coverage:
+
+- `tests/test_workflow_remaining_legacy_builder_guard.py` prevents workflow from
+  calling the three migrated legacy builders.
+- `tests/test_workflow_builder_integration.py` monkey-patches the legacy builder
+  functions to fail and verifies the workflow still emits 8 CSV, 2 Excel, and
+  3 HTML outputs.
+- `tests/test_report_builder_basic_stats.py` compares the new basic stats
+  builder to the legacy baseline and verifies it has no legacy import.

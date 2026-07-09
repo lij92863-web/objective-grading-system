@@ -14,6 +14,7 @@ from typing import Dict, Iterable, List, Optional, Tuple
 from legacy import objective_grader_legacy as legacy
 from app.validators import has_blocking_errors
 from app.domain.grading import grade_all
+from app.infrastructure.exporters.html_helpers import html_escape, safe_slug as _safe_slug
 from app.infrastructure.exporters.contracts import ExportRequest
 from app.infrastructure.exporters.simple_score_workbook_exporter import (
     SimpleScoreWorkbookExporter,
@@ -91,7 +92,7 @@ def now_iso() -> str:
 
 
 def safe_slug(value: str) -> str:
-    return legacy.safe_slug(value)
+    return _safe_slug(value)
 
 
 def write_json(path: Path, data: Dict[str, object]) -> None:
@@ -332,16 +333,16 @@ def build_layered_remedial_plan(
 
 def write_teacher_html(path: Path, title: str, description: str, rows: List[Dict[str, object]]) -> None:
     headers = list(rows[0]) if rows else []
-    header_html = "".join(f"<th>{legacy.html_escape(header)}</th>" for header in headers)
+    header_html = "".join(f"<th>{html_escape(header)}</th>" for header in headers)
     body = "".join(
-        "<tr>" + "".join(f"<td>{legacy.html_escape(row.get(header, ''))}</td>" for header in headers) + "</tr>"
+        "<tr>" + "".join(f"<td>{html_escape(row.get(header, ''))}</td>" for header in headers) + "</tr>"
         for row in rows
     )
     empty = '<div class="empty">暂无需要特别处理的数据。</div>' if not rows else ""
     table = f"<table><thead><tr>{header_html}</tr></thead><tbody>{body}</tbody></table>" if rows else empty
     html = f"""<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{legacy.html_escape(title)}</title>
+<title>{html_escape(title)}</title>
 <style>
 body{{margin:0;background:#f5f8fc;color:#172033;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",Arial,sans-serif;font-size:17px;line-height:1.65}}
 main{{max-width:1120px;margin:0 auto;padding:32px 20px}}
@@ -350,7 +351,7 @@ h1{{margin:0 0 8px;font-size:30px}}p{{margin:0;color:#667085}}
 table{{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e4ebf5;border-radius:16px;overflow:hidden;box-shadow:0 12px 28px rgba(31,61,98,.06)}}
 th,td{{padding:14px 16px;border-bottom:1px solid #edf2f7;text-align:left;vertical-align:top}}th{{background:#f8fbff;color:#42526b;font-weight:750}}
 tr:hover{{background:#f8fbff}}.empty{{padding:24px;background:#fff;border-radius:16px;border:1px dashed #cbd8e8;color:#667085;text-align:center}}
-</style></head><body><main><section class="hero"><h1>{legacy.html_escape(title)}</h1><p>{legacy.html_escape(description)}</p></section>{table}</main></body></html>"""
+</style></head><body><main><section class="hero"><h1>{html_escape(title)}</h1><p>{html_escape(description)}</p></section>{table}</main></body></html>"""
     path.write_text(html, encoding="utf-8")
 
 
@@ -372,7 +373,7 @@ def append_teaching_priority_to_dashboard(path: Path, teaching_rows: List[Dict[s
     for group in groups:
         rows = [row for row in teaching_rows if row.get("priority_level") == group]
         lines = "".join(
-            f"""<tr><td>{legacy.html_escape(row.get('question_id', ''))}</td><td>{display_percent(row.get('accuracy'))}</td><td>{display_percent(row.get('blank_rate'))}</td><td>{legacy.html_escape(row.get('main_wrong_answer', ''))}</td><td>{legacy.html_escape(row.get('tags', ''))}</td><td>{legacy.html_escape(row.get('teaching_suggestion', ''))}</td></tr>"""
+            f"""<tr><td>{html_escape(row.get('question_id', ''))}</td><td>{display_percent(row.get('accuracy'))}</td><td>{display_percent(row.get('blank_rate'))}</td><td>{html_escape(row.get('main_wrong_answer', ''))}</td><td>{html_escape(row.get('tags', ''))}</td><td>{html_escape(row.get('teaching_suggestion', ''))}</td></tr>"""
             for row in rows[:12]
         )
         body = (
@@ -380,7 +381,7 @@ def append_teaching_priority_to_dashboard(path: Path, teaching_rows: List[Dict[s
             if lines
             else '<div class="empty">暂无题目</div>'
         )
-        cards.append(f'<article class="chart-card wide"><h2>{legacy.html_escape(group)}题</h2>{body}</article>')
+        cards.append(f'<article class="chart-card wide"><h2>{html_escape(group)}题</h2>{body}</article>')
     section = "\n".join(cards)
     html = path.read_text(encoding="utf-8")
     if "</section>" in html:

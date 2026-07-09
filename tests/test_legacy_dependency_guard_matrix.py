@@ -29,7 +29,7 @@ WORKFLOW_FORBIDDEN_CALLS = {
     "build_knowledge_profiles",
     "basic_stats",
 }
-WORKFLOW_ALLOWED_CALLS = {"safe_slug", "html_escape", "ExamMeta", "load_question_bank"}
+WORKFLOW_ALLOWED_CALLS = {"ExamMeta", "load_question_bank"}
 OBJECTIVE_ALLOWED_LEGACY_CALLS = {"create_sample_files"}
 APPLICATION_EXPORTER_IMPORT_EXCEPTIONS = {"csv_report_pipeline.py"}
 

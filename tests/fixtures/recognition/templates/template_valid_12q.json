@@ -1,0 +1,194 @@
+{
+  "layout_id": "valid_12q",
+  "version": "1.5",
+  "page_count": 1,
+  "coordinate_space": "pixel",
+  "identity_roi": {
+    "x": 50,
+    "y": 20,
+    "w": 300,
+    "h": 60
+  },
+  "question_rois": [
+    {
+      "question_number": 1,
+      "question_type": "choice",
+      "roi_box": {
+        "x": 40,
+        "y": 140,
+        "w": 200,
+        "h": 30
+      },
+      "expected_answer": "A",
+      "points": 1,
+      "tags": [
+        "test"
+      ]
+    },
+    {
+      "question_number": 2,
+      "question_type": "choice",
+      "roi_box": {
+        "x": 40,
+        "y": 180,
+        "w": 200,
+        "h": 30
+      },
+      "expected_answer": "A",
+      "points": 1,
+      "tags": [
+        "test"
+      ]
+    },
+    {
+      "question_number": 3,
+      "question_type": "choice",
+      "roi_box": {
+        "x": 40,
+        "y": 220,
+        "w": 200,
+        "h": 30
+      },
+      "expected_answer": "A",
+      "points": 1,
+      "tags": [
+        "test"
+      ]
+    },
+    {
+      "question_number": 4,
+      "question_type": "choice",
+      "roi_box": {
+        "x": 40,
+        "y": 260,
+        "w": 200,
+        "h": 30
+      },
+      "expected_answer": "A",
+      "points": 1,
+      "tags": [
+        "test"
+      ]
+    },
+    {
+      "question_number": 5,
+      "question_type": "choice",
+      "roi_box": {
+        "x": 40,
+        "y": 300,
+        "w": 200,
+        "h": 30
+      },
+      "expected_answer": "A",
+      "points": 1,
+      "tags": [
+        "test"
+      ]
+    },
+    {
+      "question_number": 6,
+      "question_type": "choice",
+      "roi_box": {
+        "x": 40,
+        "y": 340,
+        "w": 200,
+        "h": 30
+      },
+      "expected_answer": "A",
+      "points": 1,
+      "tags": [
+        "test"
+      ]
+    },
+    {
+      "question_number": 7,
+      "question_type": "choice",
+      "roi_box": {
+        "x": 40,
+        "y": 380,
+        "w": 200,
+        "h": 30
+      },
+      "expected_answer": "A",
+      "points": 1,
+      "tags": [
+        "test"
+      ]
+    },
+    {
+      "question_number": 8,
+      "question_type": "choice",
+      "roi_box": {
+        "x": 40,
+        "y": 420,
+        "w": 200,
+        "h": 30
+      },
+      "expected_answer": "A",
+      "points": 1,
+      "tags": [
+        "test"
+      ]
+    },
+    {
+      "question_number": 9,
+      "question_type": "choice",
+      "roi_box": {
+        "x": 40,
+        "y": 460,
+        "w": 200,
+        "h": 30
+      },
+      "expected_answer": "A",
+      "points": 1,
+      "tags": [
+        "test"
+      ]
+    },
+    {
+      "question_number": 10,
+      "question_type": "choice",
+      "roi_box": {
+        "x": 40,
+        "y": 500,
+        "w": 200,
+        "h": 30
+      },
+      "expected_answer": "A",
+      "points": 1,
+      "tags": [
+        "test"
+      ]
+    },
+    {
+      "question_number": 11,
+      "question_type": "choice",
+      "roi_box": {
+        "x": 40,
+        "y": 540,
+        "w": 200,
+        "h": 30
+      },
+      "expected_answer": "A",
+      "points": 1,
+      "tags": [
+        "test"
+      ]
+    },
+    {
+      "question_number": 12,
+      "question_type": "choice",
+      "roi_box": {
+        "x": 40,
+        "y": 580,
+        "w": 200,
+        "h": 30
+      },
+      "expected_answer": "A",
+      "points": 1,
+      "tags": [
+        "test"
+      ]
+    }
+  ]
+}

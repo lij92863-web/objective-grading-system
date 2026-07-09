@@ -1,0 +1,54 @@
+{
+  "layout_id": "blank_only",
+  "version": "1.5",
+  "page_count": 1,
+  "coordinate_space": "pixel",
+  "identity_roi": {
+    "x": 50,
+    "y": 20,
+    "w": 300,
+    "h": 60
+  },
+  "question_rois": [
+    {
+      "question_number": 1,
+      "question_type": "blank",
+      "roi_box": {
+        "x": 40,
+        "y": 140,
+        "w": 200,
+        "h": 30
+      }
+    },
+    {
+      "question_number": 2,
+      "question_type": "blank",
+      "roi_box": {
+        "x": 40,
+        "y": 180,
+        "w": 200,
+        "h": 30
+      }
+    },
+    {
+      "question_number": 3,
+      "question_type": "blank",
+      "roi_box": {
+        "x": 40,
+        "y": 220,
+        "w": 200,
+        "h": 30
+      }
+    },
+    {
+      "question_number": 4,
+      "question_type": "blank",
+      "roi_box": {
+        "x": 40,
+        "y": 260,
+        "w": 200,
+        "h": 30
+      }
+    }
+  ]
+}

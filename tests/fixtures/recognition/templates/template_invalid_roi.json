@@ -1,0 +1,24 @@
+{
+  "layout_id": "invalid_roi",
+  "version": "1.5",
+  "page_count": 1,
+  "coordinate_space": "pixel",
+  "identity_roi": {
+    "x": 50,
+    "y": 20,
+    "w": 300,
+    "h": 60
+  },
+  "question_rois": [
+    {
+      "question_number": 1,
+      "question_type": "choice",
+      "roi_box": {
+        "x": -1,
+        "y": 100,
+        "w": 200,
+        "h": 30
+      }
+    }
+  ]
+}

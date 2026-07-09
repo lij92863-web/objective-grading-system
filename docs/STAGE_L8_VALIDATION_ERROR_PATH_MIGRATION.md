@@ -81,3 +81,18 @@ Additional parity tests compare direct legacy writer output against
 
 L8B conclusion: `ValidationReportCsvExporter` is the writer replacement for
 workflow's validation error path.
+
+## L8C Workflow Cutover
+
+`app/workflow.py` now routes the pre-blocking validation report write through
+`ValidationReportCsvExporter`:
+
+- workflow no longer calls `legacy.write_validation_report`;
+- the blocked error path still writes `validation_report.csv`;
+- the blocked error path still writes `error_report.html`;
+- normal successful workflow still emits 8 CSV, 2 Excel, and 3 HTML report
+  files;
+- validation rows are still pre-computed before the exporter call, so the
+  exporter does not own business validation logic.
+
+No CLI arguments, UI files, legacy files, or report formats were changed.

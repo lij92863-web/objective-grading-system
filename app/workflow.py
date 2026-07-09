@@ -26,6 +26,9 @@ from app.infrastructure.exporters.advanced_dashboard_html_exporter import (
 from app.infrastructure.exporters.report_index_html_exporter import (
     ReportIndexHtmlExporter,
 )
+from app.infrastructure.exporters.validation_report_csv_exporter import (
+    ValidationReportCsvExporter,
+)
 from app.application.use_cases.report_builders.simple_score_rows import (
     build_simple_score_rows,
 )
@@ -418,7 +421,9 @@ def run_grading(
     archived_dir = None
     try:
         validation_path = temp_dir_path / "validation_report.csv"
-        legacy.write_validation_report(validation_path, validation_rows)
+        ValidationReportCsvExporter().export(
+            ExportRequest(output_dir=temp_dir_path), validation_rows
+        )
         if blocked and not allow_errors:
             write_error_report(temp_dir_path / "error_report.html", validation_rows)
             replace_report_outputs(temp_dir_path, out_dir)

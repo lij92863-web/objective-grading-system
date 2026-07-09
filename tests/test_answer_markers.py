@@ -70,6 +70,19 @@ class AnswerMarkersTests(unittest.TestCase):
         assert pattern.search("1.〖答案〗B")
         assert pattern.search("1.[答案]B")
 
+    def test_real_chinese_answer_marker_is_literal_u3010_u3011(self):
+        self.assertEqual(REAL_CHINESE_ANSWER_MARKER, "【答案】")
+        self.assertEqual(ord(REAL_CHINESE_ANSWER_MARKER[0]), 0x3010)
+        self.assertEqual(ord(REAL_CHINESE_ANSWER_MARKER[-1]), 0x3011)
+
+    def test_compat_marker_is_u3016_u3017_not_real(self):
+        self.assertIn("〖答案〗", COMPAT_ANSWER_MARKERS)
+        self.assertIn("[答案]", COMPAT_ANSWER_MARKERS)
+        self.assertNotIn("【答案】", COMPAT_ANSWER_MARKERS)
+        compat = "〖答案〗"
+        self.assertEqual(ord(compat[0]), 0x3016)
+        self.assertEqual(ord(compat[-1]), 0x3017)
+
 
 if __name__ == "__main__":
     unittest.main()

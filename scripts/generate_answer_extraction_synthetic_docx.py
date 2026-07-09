@@ -59,7 +59,7 @@ CASES = {
     },
     "same_file_itemized_real_brackets.docx": {
         "parts": [p("一、单选题"), p("1. 题干 A.甲 B.乙 C.丙 D.丁"), p("2. 题干 A.甲 B.乙 C.丙 D.丁"), p("答案解析"), p("1.【答案】B"), p("2．【答案】C")],
-        "expected": {"strategy": "same_file_itemized", "answers": {"1": "B", "2": "C"}},
+        "expected": {"strategy": "same_file_itemized", "answers": {"1": "B", "2": "C"}, "expected_evidence_contains": "【答案】"},
     },
     "split_question_with_empty_grid.docx": {
         "parts": [p("班级 姓名 评分"), tbl([["题号", "1", "2"], ["答案", "", ""]]), p("一、单选题"), p("1. 题干 A.甲 B.乙 C.丙 D.丁"), p("2. 题干 A.甲 B.乙 C.丙 D.丁")],
@@ -71,7 +71,7 @@ CASES = {
     },
     "split_answer_itemized_real_brackets.docx": {
         "parts": [p("答案解析"), p("1."), p("【答案】B"), p("2．【答案】C")],
-        "expected": {"strategy": "answer_only_without_question", "answers": {"1": "B", "2": "C"}},
+        "expected": {"strategy": "answer_only_without_question", "answers": {"1": "B", "2": "C"}, "expected_evidence_contains": "【答案】"},
     },
     "itemized_fill_blank_complex.docx": {
         "parts": [p("三、填空题"), p("12. 填空____"), p("13. 填空____"), p("参考答案"), p("12．【答案】\\frac{1}{2}"), p("13．【答案】[-1,2]")],

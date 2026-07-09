@@ -1,0 +1,7 @@
+{
+  "student_id": "S001",
+  "student_number": "20240001",
+  "student_name": "张三",
+  "confidence": 0.96,
+  "status": "confirmed"
+}

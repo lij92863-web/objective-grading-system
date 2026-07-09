@@ -1,0 +1,12 @@
+{
+  "1": {"engine": "mock_choice", "value": "A", "confidence": 0.95},
+  "2": {"engine": "mock_choice", "value": "BD", "confidence": 0.88},
+  "3": {"engine": "mock_choice", "value": "C", "confidence": 0.92},
+  "4": {"engine": "mock_choice", "value": "A", "confidence": 0.91},
+  "5": {"engine": "mock_choice", "value": "D", "confidence": 0.45},
+  "6": {"engine": "mock_choice", "value": "B", "confidence": 0.93},
+  "9": {"engine": "mock_choice", "value": "AB", "confidence": 0.87},
+  "10": {"engine": "mock_choice", "value": "E", "confidence": 0.50},
+  "11": {"engine": "mock_choice", "value": "A", "confidence": 0.55},
+  "12": {"engine": "mock_choice", "value": "D", "confidence": 0.94}
+}

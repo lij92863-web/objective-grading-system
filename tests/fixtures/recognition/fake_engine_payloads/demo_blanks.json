@@ -1,0 +1,4 @@
+{
+  "7": {"engine": "mock_blank", "value": "1/2", "latex": "\\frac{1}{2}", "confidence": 0.97},
+  "8": {"engine": "mock_blank", "value": "3.14", "latex": "", "confidence": 0.42}
+}

@@ -1,0 +1,1 @@
+{"2": {"engine": "mock_choice", "value": "B", "confidence": 0.85}, "2_alt": {"engine": "qwen_mock", "value": "D", "confidence": 0.80}, "expected_status": "needs_review", "expected_conflict": true}

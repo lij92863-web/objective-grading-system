@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from legacy.objective_grader_legacy import (
+from app.compat.objective_grader_compat import (
     load_answer_key as legacy_load_answer_key,
     load_submissions as legacy_load_submissions,
 )

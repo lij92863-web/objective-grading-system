@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from legacy import objective_grader_legacy as legacy
+from app.compat.objective_grader_compat import write_validation_report as legacy_write
 
 from app.infrastructure.exporters.contracts import ExportRequest
 from app.infrastructure.exporters.validation_report_csv_exporter import (
@@ -24,7 +24,7 @@ class ValidationReportWriterTests(unittest.TestCase):
         new_dir = temp_dir / "new"
         legacy_dir.mkdir()
         new_dir.mkdir()
-        legacy.write_validation_report(legacy_dir / "validation_report.csv", rows)
+        legacy_write(legacy_dir / "validation_report.csv", rows)
         result = ValidationReportCsvExporter().export(ExportRequest(output_dir=new_dir), rows)
         return temp_dir, legacy_dir / "validation_report.csv", new_dir / "validation_report.csv", result
 

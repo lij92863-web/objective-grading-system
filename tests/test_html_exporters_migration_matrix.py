@@ -71,16 +71,19 @@ class HtmlExportersMigrationMatrixTests(unittest.TestCase):
     def test_all_three_return_export_result(self):
         """Verifies that all exporters return ExportResult."""
         import shutil
-        import legacy.objective_grader_legacy as leg
+        from app.compat.objective_grader_compat import (
+            load_answer_key, load_submissions, grade_all, build_knowledge_profiles,
+            item_stats, simple_score_rows, build_validation_report,
+        )
         from app.infrastructure.exporters.contracts import ExportRequest
 
-        ak = leg.load_answer_key(DEMO_KEY)
-        subs = leg.load_submissions(DEMO_SUB, ak)
-        results = leg.grade_all(ak, subs)
-        profiles = leg.build_knowledge_profiles(ak, results)
-        item_rows = leg.item_stats(ak, results)
-        simple_rows = leg.simple_score_rows(results)
-        val_rows = leg.build_validation_report(ak, subs, results, profiles)
+        ak = load_answer_key(DEMO_KEY)
+        subs = load_submissions(DEMO_SUB, ak)
+        results = grade_all(ak, subs)
+        profiles = build_knowledge_profiles(ak, results)
+        item_rows = item_stats(ak, results)
+        simple_rows = simple_score_rows(results)
+        val_rows = build_validation_report(ak, subs, results, profiles)
         meta = {"exam_name": "d", "class_name": "c",
                 "subject": "s", "exam_date": "2026-07-09"}
 

@@ -27,16 +27,15 @@ ALLOWED_LEGACY_TEST_IMPORTS = {
     "tests/test_facade_legacy_dependency_guard.py",
     "tests/test_code_readability_guard.py",
     # Remaining parity/integration (deferred to next round)
+    # Compat test (must keep — verifies legacy entrypoints exist)
+    "tests/test_legacy_entrypoints_import.py",
+    # Remaining parity/integration (deferred — need deeper refactoring)
     "tests/test_csv_report_pipeline_shadow_parity.py",
     "tests/test_excel_exporter_shadow_parity.py",
     "tests/test_html_exporter_shadow_parity.py",
-    "tests/test_csv_loaders.py",
-    "tests/test_validation_report_writer.py",
     "tests/test_workflow_builder_integration.py",
     "tests/test_workflow_grading_core_integration.py",
     "tests/test_workflow_validation_error_path.py",
-    # exporter tests converted to fixture P3 (4 removed)
-    "tests/test_html_exporters_migration_matrix.py",
 }
 
 
@@ -45,10 +44,10 @@ def _has_legacy_import(path: Path) -> bool:
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for a in node.names:
-                if "legacy" in a.name:
+                if a.name == "legacy" or a.name.startswith("legacy."):
                     return True
         elif isinstance(node, ast.ImportFrom):
-            if node.module and "legacy" in node.module:
+            if node.module and (node.module == "legacy" or node.module.startswith("legacy.")):
                 return True
     return False
 

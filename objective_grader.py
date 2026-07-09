@@ -15,6 +15,7 @@ from typing import List, Optional
 
 from legacy import objective_grader_legacy as legacy
 from app.workflow import run_grading
+from app.infrastructure.samples.sample_files import create_sample_files
 
 COMPAT_EXPORTS = (
     "AnswerKey",
@@ -170,12 +171,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     if args.make_samples:
-        legacy.create_sample_files(args.out_dir)
+        create_sample_files(args.out_dir)
         print(f"Sample files created in {args.out_dir.resolve()}")
         return 0
     if not args.answer_key and not args.submissions:
         demo_dir = Path("demo")
-        legacy.create_sample_files(demo_dir)
+        create_sample_files(demo_dir)
         args.answer_key = demo_dir / "answer_key_sample.csv"
         args.submissions = demo_dir / "submissions_sample.csv"
         args.question_bank = demo_dir / "question_bank_sample.csv"

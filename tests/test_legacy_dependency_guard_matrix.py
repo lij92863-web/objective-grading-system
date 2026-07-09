@@ -30,7 +30,7 @@ WORKFLOW_FORBIDDEN_CALLS = {
     "basic_stats",
 }
 WORKFLOW_ALLOWED_CALLS = {"ExamMeta", "load_question_bank"}
-OBJECTIVE_ALLOWED_LEGACY_CALLS = {"create_sample_files"}
+OBJECTIVE_ALLOWED_LEGACY_CALLS: set = set()  # all legacy calls migrated
 APPLICATION_EXPORTER_IMPORT_EXCEPTIONS = {"csv_report_pipeline.py"}
 
 

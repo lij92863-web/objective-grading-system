@@ -17,6 +17,8 @@ LONG_LINE_WHITELIST = {
     "prompt_builder.py",
     # Real client has long f-strings for error messages
     "real_client.py",
+    # CSS strings from legacy — single-line compressed, not code
+    "html_helpers.py",
 }
 
 

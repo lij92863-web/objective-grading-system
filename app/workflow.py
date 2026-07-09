@@ -17,6 +17,15 @@ from app.infrastructure.exporters.simple_score_workbook_exporter import (
     SimpleScoreWorkbookExporter,
 )
 from app.infrastructure.exporters.workbook_exporter import WorkbookExporter
+from app.infrastructure.exporters.simple_report_html_exporter import (
+    SimpleReportHtmlExporter,
+)
+from app.infrastructure.exporters.advanced_dashboard_html_exporter import (
+    AdvancedDashboardHtmlExporter,
+)
+from app.infrastructure.exporters.report_index_html_exporter import (
+    ReportIndexHtmlExporter,
+)
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -468,10 +477,21 @@ def run_grading(
 
         SimpleScoreWorkbookExporter().export(
             ExportRequest(output_dir=temp_dir_path), simple_rows)
-        legacy.write_simple_report(simple_report_path, meta, answer_key, results, simple_rows, item_rows)
-        legacy.write_advanced_dashboard(advanced_dashboard_path, meta, results, profiles, validation_rows, item_rows)
+        html_meta = {
+            "exam_name": exam_name, "class_name": class_name,
+            "subject": subject, "exam_date": exam_date,
+        }
+        SimpleReportHtmlExporter().export(
+            ExportRequest(output_dir=temp_dir_path), html_meta,
+            results, simple_rows, item_rows)
+        AdvancedDashboardHtmlExporter().export(
+            ExportRequest(output_dir=temp_dir_path), html_meta,
+            results, profiles, validation_rows, item_rows)
         append_teaching_priority_to_dashboard(advanced_dashboard_path, teaching_rows)
-        legacy.write_report_index(index_path, meta, simple_report_path, advanced_dashboard_path, simple_score_workbook_path)
+        ReportIndexHtmlExporter().export(
+            ExportRequest(output_dir=temp_dir_path), html_meta,
+            simple_report_path, advanced_dashboard_path,
+            simple_score_workbook_path)
 
         report_files = [
             ("成绩总表", summary_path),

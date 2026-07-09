@@ -169,9 +169,9 @@ class WorkflowExcelImportAuditTests(unittest.TestCase):
                          "workflow should not define write_enhanced_workbook")
 
     def test_workflow_still_uses_legacy_for_html(self):
-        """Legacy HTML calls are still needed (HTML not yet migrated)."""
-        self.assertIn("legacy.write_simple_report", self.wf_source,
-                      "workflow must still call legacy HTML")
+        """Legacy HTML calls are now migrated (E4G)."""
+        self.assertNotIn("legacy.write_simple_report", self.wf_source,
+                         "workflow should not call legacy HTML")
 
 
 if __name__ == "__main__":

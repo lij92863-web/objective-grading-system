@@ -47,15 +47,15 @@ class WorkflowLegacyExcelCallGuardTests(unittest.TestCase):
                         f"Excel output must use new exporters."
                     )
 
-    def test_legacy_html_still_allowed(self):
-        """Legacy HTML calls are still present (HTML not yet migrated)."""
+    def test_legacy_html_now_migrated(self):
+        """Legacy HTML calls are now REMOVED (E4G migrated HTML)."""
         text = (PROJECT_ROOT / "app" / "workflow.py").read_text(
             encoding="utf-8")
         for name in ALLOWED_HTML_CALLS:
-            self.assertIn(
+            self.assertNotIn(
                 name, text,
-                f"Expected legacy HTML call '{name}' to still be in "
-                f"workflow.py (HTML not yet migrated)"
+                f"Legacy HTML call '{name}' should be removed from "
+                f"workflow.py after E4G migration"
             )
 
     def test_workflow_imports_new_exporters(self):

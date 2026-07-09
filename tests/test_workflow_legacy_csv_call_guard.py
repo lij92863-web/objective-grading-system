@@ -35,13 +35,13 @@ class WorkflowLegacyCsvCallGuardTests(unittest.TestCase):
                     )
 
     def test_allowed_html_still_present(self):
-        """HTML calls are still allowed (not yet migrated)."""
+        """E4G: legacy HTML calls are now REMOVED from workflow."""
         text = PROJECT_ROOT.joinpath("app/workflow.py").read_text(encoding="utf-8")
         for name in ALLOWED_HTML:
-            self.assertIn(
+            self.assertNotIn(
                 name, text,
-                f"Expected {name} to still be in workflow.py "
-                f"(Excel/HTML not yet migrated)"
+                f"Legacy HTML call '{name}' should no longer be in "
+                f"workflow.py after E4G migration"
             )
 
 if __name__ == "__main__": unittest.main()

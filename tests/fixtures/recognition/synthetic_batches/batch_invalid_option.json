@@ -1,0 +1,9 @@
+{
+  "batch_id": "bc-inv",
+  "scenario": "with_blocking_identity",
+  "expected_status": "blocked",
+  "expected_review": 2,
+  "expected_blocking": 1,
+  "expected_qwen": 2,
+  "expected_ready": 0
+}

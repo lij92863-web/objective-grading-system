@@ -1,0 +1,9 @@
+{
+  "batch_id": "bc-all",
+  "scenario": "all_clear",
+  "expected_status": "completed",
+  "expected_review": 0,
+  "expected_blocking": 0,
+  "expected_qwen": 0,
+  "expected_ready": 3
+}

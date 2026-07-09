@@ -1,0 +1,9 @@
+{
+  "batch_id": "bc-budget",
+  "scenario": "qwen_budget_exceeded",
+  "expected_status": "completed_with_review",
+  "expected_review": 6,
+  "expected_blocking": 0,
+  "expected_qwen": 6,
+  "expected_ready": 0
+}

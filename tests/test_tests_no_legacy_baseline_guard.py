@@ -35,10 +35,7 @@ ALLOWED_LEGACY_TEST_IMPORTS = {
     "tests/test_workflow_builder_integration.py",
     "tests/test_workflow_grading_core_integration.py",
     "tests/test_workflow_validation_error_path.py",
-    "tests/test_simple_score_workbook_exporter.py",
-    "tests/test_simple_report_html_exporter.py",
-    "tests/test_advanced_dashboard_html_exporter.py",
-    "tests/test_report_index_html_exporter.py",
+    # exporter tests converted to fixture P3 (4 removed)
     "tests/test_html_exporters_migration_matrix.py",
 }
 

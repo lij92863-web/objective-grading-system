@@ -75,7 +75,16 @@ Migration decision:
 
 ## L7C Migration Result
 
-Pending.
+Implemented `app.infrastructure.loaders.csv_loaders` with no legacy or web
+imports. The new loader uses stdlib `csv.DictReader`, `utf-8-sig`, and local
+dataclasses that preserve the legacy attribute surface:
+
+- `QuestionSpec`
+- `AnswerKey`
+- `Submission`
+
+Parity tests compare demo answer keys, demo submissions, Chinese fields, blank
+cells, missing files, and missing question fields against the legacy baseline.
 
 ## L7D Workflow Cutover Result
 

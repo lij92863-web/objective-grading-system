@@ -1,0 +1,39 @@
+{
+  "identity_candidate": {
+    "raw_text": "S001测试学生A",
+    "student_number": "S001",
+    "student_name": "测试学生A",
+    "confidence": 0.88
+  },
+  "items": [
+    {
+      "question_id": "Q1",
+      "question_type": "single_choice",
+      "answer": "A",
+      "raw_text": "A",
+      "confidence": 0.95,
+      "needs_review": false,
+      "invalid_option": false,
+      "warnings": []
+    },
+    {
+      "question_id": "Q2",
+      "question_type": "single_choice",
+      "answer": "B",
+      "raw_text": "B",
+      "confidence": 0.93,
+      "needs_review": false,
+      "invalid_option": false,
+      "warnings": []
+    }
+  ],
+  "_fixture_meta": {
+    "is_fake": true,
+    "is_synthetic": true,
+    "contains_real_student_data": false,
+    "contains_api_key": false,
+    "contains_base64": false,
+    "expected_parse_status": "has_identity_candidate",
+    "description": "Fake response with identity candidate (must remain unconfirmed)"
+  }
+}

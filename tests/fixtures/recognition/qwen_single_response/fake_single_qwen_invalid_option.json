@@ -1,0 +1,44 @@
+{
+  "items": [
+    {
+      "question_id": "Q1",
+      "question_type": "single_choice",
+      "answer": "Z",
+      "raw_text": "Z",
+      "confidence": 0.85,
+      "needs_review": false,
+      "invalid_option": true,
+      "warnings": ["unrecognized option"]
+    },
+    {
+      "question_id": "Q2",
+      "question_type": "single_choice",
+      "answer": "E",
+      "raw_text": "E",
+      "confidence": 0.80,
+      "needs_review": false,
+      "invalid_option": false,
+      "warnings": []
+    },
+    {
+      "question_id": "Q3",
+      "question_type": "single_choice",
+      "answer": "A",
+      "raw_text": "A",
+      "confidence": 0.95,
+      "needs_review": false,
+      "invalid_option": false,
+      "warnings": []
+    }
+  ],
+  "_fixture_meta": {
+    "is_fake": true,
+    "is_synthetic": true,
+    "contains_real_student_data": false,
+    "contains_api_key": false,
+    "contains_base64": false,
+    "expected_parse_status": "has_invalid_option",
+    "expected_exception_codes": ["INVALID_OPTION:Q1", "INVALID_OPTION:Q2"],
+    "description": "Fake response with invalid choice options Z and E"
+  }
+}

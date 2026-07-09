@@ -1,0 +1,44 @@
+{
+  "items": [
+    {
+      "question_id": "Q1",
+      "question_type": "single_choice",
+      "answer": "A",
+      "raw_text": "A",
+      "confidence": 0.95,
+      "needs_review": false,
+      "invalid_option": false,
+      "warnings": []
+    },
+    {
+      "question_id": "Q99",
+      "question_type": "single_choice",
+      "answer": "C",
+      "raw_text": "C",
+      "confidence": 0.90,
+      "needs_review": false,
+      "invalid_option": false,
+      "warnings": []
+    },
+    {
+      "question_id": "Q_EXTRA",
+      "question_type": "single_choice",
+      "answer": "D",
+      "raw_text": "D",
+      "confidence": 0.92,
+      "needs_review": false,
+      "invalid_option": false,
+      "warnings": []
+    }
+  ],
+  "_fixture_meta": {
+    "is_fake": true,
+    "is_synthetic": true,
+    "contains_real_student_data": false,
+    "contains_api_key": false,
+    "contains_base64": false,
+    "expected_parse_status": "has_unexpected_ids",
+    "expected_exception_codes": ["UNEXPECTED_QUESTION_ID:Q99", "UNEXPECTED_QUESTION_ID:Q_EXTRA"],
+    "description": "Fake response with question IDs not in ROI"
+  }
+}

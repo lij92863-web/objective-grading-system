@@ -1,0 +1,90 @@
+{
+  "identity_candidate": {
+    "raw_text": "1测试学生",
+    "student_number": "1",
+    "student_name": "测试学生",
+    "confidence": 0.95
+  },
+  "items": [
+    {
+      "question_id": "Q1",
+      "question_type": "single_choice",
+      "answer": "A",
+      "raw_text": "A",
+      "confidence": 0.98,
+      "needs_review": false,
+      "invalid_option": false,
+      "warnings": []
+    },
+    {
+      "question_id": "Q2",
+      "question_type": "single_choice",
+      "answer": "B",
+      "raw_text": "B",
+      "confidence": 0.96,
+      "needs_review": false,
+      "invalid_option": false,
+      "warnings": []
+    },
+    {
+      "question_id": "Q3",
+      "question_type": "single_choice",
+      "answer": "C",
+      "raw_text": "C",
+      "confidence": 0.97,
+      "needs_review": false,
+      "invalid_option": false,
+      "warnings": []
+    },
+    {
+      "question_id": "Q4",
+      "question_type": "single_choice",
+      "answer": "D",
+      "raw_text": "D",
+      "confidence": 0.94,
+      "needs_review": false,
+      "invalid_option": false,
+      "warnings": []
+    },
+    {
+      "question_id": "Q5",
+      "question_type": "single_choice",
+      "answer": "A",
+      "raw_text": "A",
+      "confidence": 0.90,
+      "needs_review": false,
+      "invalid_option": false,
+      "warnings": []
+    },
+    {
+      "question_id": "Q6",
+      "question_type": "blank",
+      "answer": "1/2",
+      "raw_text": "1/2",
+      "confidence": 0.92,
+      "needs_review": false,
+      "invalid_option": false,
+      "warnings": []
+    },
+    {
+      "question_id": "Q7",
+      "question_type": "blank",
+      "answer": "3",
+      "raw_text": "3",
+      "confidence": 0.88,
+      "needs_review": false,
+      "invalid_option": false,
+      "warnings": []
+    }
+  ],
+  "_fixture_meta": {
+    "is_fake": true,
+    "is_synthetic": true,
+    "contains_real_student_data": false,
+    "contains_api_key": false,
+    "contains_base64": false,
+    "contains_raw_http_response": false,
+    "expected_parse_status": "ok",
+    "description": "Valid fake single Qwen response with choice, blank, and identity candidates"
+  }
+}

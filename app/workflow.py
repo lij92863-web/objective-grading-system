@@ -12,6 +12,11 @@ from typing import Dict, Iterable, List, Optional, Tuple
 
 from legacy import objective_grader_legacy as legacy
 from app.validators import has_blocking_errors
+from app.infrastructure.exporters.contracts import ExportRequest
+from app.infrastructure.exporters.simple_score_workbook_exporter import (
+    SimpleScoreWorkbookExporter,
+)
+from app.infrastructure.exporters.workbook_exporter import WorkbookExporter
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -308,45 +313,6 @@ def append_teaching_priority_to_dashboard(path: Path, teaching_rows: List[Dict[s
     path.write_text(html, encoding="utf-8")
 
 
-def write_enhanced_workbook(path: Path, report_files: List[Tuple[str, Path]]) -> None:
-    try:
-        from openpyxl import Workbook
-        from openpyxl.styles import Font, PatternFill
-        from openpyxl.utils import get_column_letter
-    except ImportError:
-        legacy.write_workbook(path, report_files)
-        return
-
-    workbook = Workbook()
-    default = workbook.active
-    workbook.remove(default)
-    error_fill = PatternFill("solid", fgColor="FEE2E2")
-    warning_fill = PatternFill("solid", fgColor="FEF3C7")
-    header_fill = PatternFill("solid", fgColor="EAF2FF")
-    for sheet_name, csv_path in report_files:
-        sheet = workbook.create_sheet(title=sheet_name[:31])
-        rows = legacy.read_csv_for_workbook(csv_path)
-        if not rows:
-            rows = [["empty"]]
-        for row_index, row in enumerate(rows, start=1):
-            for col_index, value in enumerate(row, start=1):
-                cell = sheet.cell(row=row_index, column=col_index, value=value)
-                if row_index == 1:
-                    cell.font = Font(bold=True)
-                    cell.fill = header_fill
-                elif str(value).lower() == "error":
-                    cell.fill = error_fill
-                elif str(value).lower() == "warning":
-                    cell.fill = warning_fill
-        sheet.freeze_panes = "A2"
-        sheet.auto_filter.ref = sheet.dimensions
-        for column_cells in sheet.columns:
-            max_len = max(len(str(cell.value or "")) for cell in column_cells)
-            sheet.column_dimensions[get_column_letter(column_cells[0].column)].width = min(max(max_len + 2, 10), 34)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    workbook.save(path)
-
-
 def replace_report_outputs(temp_dir: Path, out_dir: Path) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     for name in REPORT_FILE_NAMES:
@@ -500,7 +466,8 @@ def run_grading(
         write_teacher_html(temp_dir_path / "class_remedial_package.html", "班级统一补救练习包", "按薄弱知识点整理，适合全班统一巩固。", class_remedial_rows)
         write_teacher_html(temp_dir_path / "layered_remedial_plan.html", "分层补救建议", "按得分率分层，给出不同层次学生的练习建议。", layered_rows)
 
-        legacy.write_simple_score_workbook(simple_score_workbook_path, simple_rows)
+        SimpleScoreWorkbookExporter().export(
+            ExportRequest(output_dir=temp_dir_path), simple_rows)
         legacy.write_simple_report(simple_report_path, meta, answer_key, results, simple_rows, item_rows)
         legacy.write_advanced_dashboard(advanced_dashboard_path, meta, results, profiles, validation_rows, item_rows)
         append_teaching_priority_to_dashboard(advanced_dashboard_path, teaching_rows)
@@ -517,7 +484,8 @@ def run_grading(
             ("分层补救", layered_path),
             ("数据质量检查", validation_path),
         ]
-        write_enhanced_workbook(workbook_path, report_files)
+        WorkbookExporter().export(
+            ExportRequest(output_dir=temp_dir_path), report_files)
         replace_report_outputs(temp_dir_path, out_dir)
 
         metadata = {

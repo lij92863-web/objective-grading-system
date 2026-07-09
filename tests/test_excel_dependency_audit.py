@@ -144,25 +144,34 @@ class OpenpyxlAvailabilityRecordTests(unittest.TestCase):
 
 
 class WorkflowExcelImportAuditTests(unittest.TestCase):
-    """Verify how workflow.py handles the Excel dependency."""
+    """Verify how workflow.py handles Excel output (Route B — new exporters)."""
 
     @classmethod
     def setUpClass(cls):
         wf_path = PROJECT_ROOT / "app" / "workflow.py"
         cls.wf_source = wf_path.read_text(encoding="utf-8")
 
-    def test_workflow_has_openpyxl_fallback(self):
-        """write_enhanced_workbook must gracefully degrade without openpyxl."""
-        # The function must contain a try/except ImportError for openpyxl
-        self.assertIn("openpyxl", self.wf_source,
-                      "workflow should reference openpyxl (enhanced path)")
-        self.assertIn("ImportError", self.wf_source,
-                      "workflow must handle ImportError for openpyxl")
+    def test_workflow_uses_new_workbook_exporter(self):
+        """E3E: workflow must route Excel through WorkbookExporter."""
+        self.assertIn("WorkbookExporter", self.wf_source,
+                      "workflow should import WorkbookExporter")
 
-    def test_workflow_fallback_calls_legacy_write_workbook(self):
-        """When openpyxl is absent, fallback must call legacy.write_workbook."""
-        self.assertIn("legacy.write_workbook", self.wf_source,
-                      "workflow fallback must call legacy.write_workbook")
+    def test_workflow_uses_new_simple_score_exporter(self):
+        """E3E: workflow must route simple score through new exporter."""
+        self.assertIn("SimpleScoreWorkbookExporter", self.wf_source,
+                      "workflow should import SimpleScoreWorkbookExporter")
+
+    def test_workflow_no_longer_calls_legacy_excel(self):
+        """E3E: workflow must NOT call legacy Excel write_* functions."""
+        self.assertNotIn("legacy.write_workbook", self.wf_source,
+                         "workflow should not call legacy.write_workbook")
+        self.assertNotIn("write_enhanced_workbook", self.wf_source,
+                         "workflow should not define write_enhanced_workbook")
+
+    def test_workflow_still_uses_legacy_for_html(self):
+        """Legacy HTML calls are still needed (HTML not yet migrated)."""
+        self.assertIn("legacy.write_simple_report", self.wf_source,
+                      "workflow must still call legacy HTML")
 
 
 if __name__ == "__main__":

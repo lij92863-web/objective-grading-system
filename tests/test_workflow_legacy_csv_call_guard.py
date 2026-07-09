@@ -10,8 +10,8 @@ FORBIDDEN_CSV_CALLS = [
     "write_class_report", "write_student_report",
 ]
 # write_validation_report is exempt — it's part of the blocking error path
-ALLOWED_EXCEL_HTML = [
-    "write_workbook", "write_simple_score_workbook",
+# Excel calls are now migrated to new exporters — no longer in workflow
+ALLOWED_HTML = [
     "write_simple_report", "write_advanced_dashboard", "write_report_index",
 ]
 
@@ -34,10 +34,10 @@ class WorkflowLegacyCsvCallGuardTests(unittest.TestCase):
                         f"CSV output must use new pipeline."
                     )
 
-    def test_allowed_excel_html_still_present(self):
-        """Excel/HTML calls are still allowed."""
+    def test_allowed_html_still_present(self):
+        """HTML calls are still allowed (not yet migrated)."""
         text = PROJECT_ROOT.joinpath("app/workflow.py").read_text(encoding="utf-8")
-        for name in ALLOWED_EXCEL_HTML:
+        for name in ALLOWED_HTML:
             self.assertIn(
                 name, text,
                 f"Expected {name} to still be in workflow.py "

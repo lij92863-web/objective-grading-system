@@ -61,6 +61,7 @@ class ReportIndexHtmlExporterTests(unittest.TestCase):
             (new_dir / "simple_report.html").write_text("x", encoding="utf-8")
             (new_dir / "advanced_dashboard.html").write_text("x", encoding="utf-8")
             (new_dir / "simple_score_report.xlsx").write_text("x", encoding="utf-8")
+            (new_dir / "simple_score_report.xlsx").write_text("x", encoding="utf-8")
             req = ExportRequest(output_dir=new_dir)
             meta = {"exam_name": "demo", "class_name": "Test",
                     "subject": "Math", "exam_date": "2026-07-09"}

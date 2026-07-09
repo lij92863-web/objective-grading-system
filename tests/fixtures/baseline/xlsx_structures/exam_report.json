@@ -1,0 +1,112 @@
+{
+  "filename": "exam_report.xlsx",
+  "sheet_names": [
+    "成绩总表",
+    "每题明细",
+    "每题分析",
+    "知识点画像",
+    "学生错题",
+    "讲评计划",
+    "班级补救",
+    "分层补救",
+    "数据质量检查"
+  ],
+  "sheet_count": 9,
+  "headers": {
+    "成绩总表": [
+      "student_id",
+      "name",
+      "rank",
+      "score",
+      "max_score",
+      "percent",
+      "correct_count",
+      "wrong_or_partial_count",
+      "blank_count",
+      "invalid_count"
+    ],
+    "每题明细": [
+      "student_id",
+      "name",
+      "question",
+      "question_id",
+      "question_status",
+      "difficulty",
+      "tags",
+      "expected",
+      "actual",
+      "raw_actual",
+      "score",
+      "max_score",
+      "status"
+    ],
+    "每题分析": [
+      "question",
+      "question_id",
+      "question_status",
+      "difficulty",
+      "tags",
+      "answer",
+      "points",
+      "accuracy",
+      "blank_rate",
+      "wrong_rate",
+      "partial_rate",
+      "invalid_rate",
+      "option_distribution"
+    ],
+    "知识点画像": [
+      "student_id",
+      "name",
+      "tag",
+      "score",
+      "max_score",
+      "mastery",
+      "mastery_level",
+      "question_count",
+      "weak"
+    ],
+    "学生错题": [
+      "student_id",
+      "name",
+      "wrong_questions",
+      "partial_questions",
+      "blank_questions",
+      "invalid_questions"
+    ],
+    "讲评计划": [
+      "priority_level",
+      "question_id",
+      "accuracy",
+      "blank_rate",
+      "main_wrong_answer",
+      "tags",
+      "reason",
+      "teaching_suggestion"
+    ],
+    "班级补救": [
+      "weak_tag",
+      "related_questions",
+      "class_accuracy",
+      "affected_student_count",
+      "recommended_question_ids",
+      "suggested_difficulty",
+      "teaching_note"
+    ],
+    "分层补救": [
+      "layer_name",
+      "score_range",
+      "student_count",
+      "suggested_task",
+      "recommended_question_ids",
+      "teacher_note"
+    ],
+    "数据质量检查": [
+      "severity",
+      "scope",
+      "item",
+      "message"
+    ]
+  },
+  "file_size": 7593
+}

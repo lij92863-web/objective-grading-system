@@ -1,0 +1,101 @@
+[
+  {
+    "student_id": "S001",
+    "name": "Student One",
+    "tag": "function_concept",
+    "score": 1.0,
+    "max_score": 2.0,
+    "mastery": 50.0,
+    "question_count": 1,
+    "weak": true,
+    "mastery_level": "明显薄弱"
+  },
+  {
+    "student_id": "S001",
+    "name": "Student One",
+    "tag": "geometry_area",
+    "score": 1.0,
+    "max_score": 1.0,
+    "mastery": 100.0,
+    "question_count": 1,
+    "weak": false,
+    "mastery_level": "掌握较好"
+  },
+  {
+    "student_id": "S001",
+    "name": "Student One",
+    "tag": "linear_equation",
+    "score": 1.0,
+    "max_score": 1.0,
+    "mastery": 100.0,
+    "question_count": 1,
+    "weak": false,
+    "mastery_level": "掌握较好"
+  },
+  {
+    "student_id": "S002",
+    "name": "Student Two",
+    "tag": "function_concept",
+    "score": 2.0,
+    "max_score": 2.0,
+    "mastery": 100.0,
+    "question_count": 1,
+    "weak": false,
+    "mastery_level": "掌握较好"
+  },
+  {
+    "student_id": "S002",
+    "name": "Student Two",
+    "tag": "geometry_area",
+    "score": 0.0,
+    "max_score": 1.0,
+    "mastery": 0.0,
+    "question_count": 1,
+    "weak": true,
+    "mastery_level": "严重薄弱"
+  },
+  {
+    "student_id": "S002",
+    "name": "Student Two",
+    "tag": "linear_equation",
+    "score": 0.0,
+    "max_score": 1.0,
+    "mastery": 0.0,
+    "question_count": 1,
+    "weak": true,
+    "mastery_level": "严重薄弱"
+  },
+  {
+    "student_id": "S003",
+    "name": "Student Three",
+    "tag": "function_concept",
+    "score": 1.0,
+    "max_score": 2.0,
+    "mastery": 50.0,
+    "question_count": 1,
+    "weak": true,
+    "mastery_level": "明显薄弱"
+  },
+  {
+    "student_id": "S003",
+    "name": "Student Three",
+    "tag": "geometry_area",
+    "score": 0.0,
+    "max_score": 1.0,
+    "mastery": 0.0,
+    "question_count": 1,
+    "weak": true,
+    "mastery_level": "严重薄弱"
+  },
+  {
+    "student_id": "S003",
+    "name": "Student Three",
+    "tag": "linear_equation",
+    "score": 1.0,
+    "max_score": 1.0,
+    "mastery": 100.0,
+    "question_count": 1,
+    "weak": false,
+    "mastery_level": "掌握较好"
+  }
+]

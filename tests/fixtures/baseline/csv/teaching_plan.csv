@@ -1,0 +1,4 @@
+﻿priority_level,question_id,accuracy,blank_rate,main_wrong_answer,tags,reason,teaching_suggestion
+重点讲评,Q2,33.33,0.0,B（1人）,function_concept,正确率较低或空白较多,先讲清核心思路，再安排同类题即时巩固。
+重点讲评,Q3,33.33,33.33,A（1人）,geometry_area,正确率较低或空白较多,先讲清核心思路，再安排同类题即时巩固。
+快速点拨,Q1,66.67,0.0,B（1人）,linear_equation,多数学生已掌握,用 2-3 分钟点拨易错点即可。

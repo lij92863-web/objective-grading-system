@@ -1,0 +1,25 @@
+{
+  "filename": "simple_score_report.xlsx",
+  "sheet_names": [
+    "scores"
+  ],
+  "sheet_count": 1,
+  "headers": {
+    "scores": [
+      "rank",
+      "student_id",
+      "name",
+      "score",
+      "max_score",
+      "percent",
+      "correct_count",
+      "wrong_or_partial_count",
+      "blank_count",
+      "invalid_count",
+      "wrong_questions",
+      "blank_questions",
+      "remark"
+    ]
+  },
+  "file_size": 1923
+}

@@ -1,0 +1,12 @@
+{
+  "title": "批改完成",
+  "sections": [
+    "本次批改完成"
+  ],
+  "links": [
+    "simple_report.html",
+    "advanced_dashboard.html",
+    "simple_score_report.xlsx"
+  ],
+  "has_table": false
+}

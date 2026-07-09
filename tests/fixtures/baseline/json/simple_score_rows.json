@@ -1,0 +1,47 @@
+[
+  {
+    "rank": 1,
+    "student_id": "S001",
+    "name": "Student One",
+    "score": 3.0,
+    "max_score": 4.0,
+    "percent": 75.0,
+    "correct_count": 2,
+    "wrong_or_partial_count": 1,
+    "blank_count": 0,
+    "invalid_count": 0,
+    "wrong_questions": "",
+    "blank_questions": "",
+    "remark": ""
+  },
+  {
+    "rank": 2,
+    "student_id": "S002",
+    "name": "Student Two",
+    "score": 2.0,
+    "max_score": 4.0,
+    "percent": 50.0,
+    "correct_count": 1,
+    "wrong_or_partial_count": 1,
+    "blank_count": 1,
+    "invalid_count": 0,
+    "wrong_questions": "1",
+    "blank_questions": "3",
+    "remark": "未及格；有空白"
+  },
+  {
+    "rank": 2,
+    "student_id": "S003",
+    "name": "Student Three",
+    "score": 2.0,
+    "max_score": 4.0,
+    "percent": 50.0,
+    "correct_count": 1,
+    "wrong_or_partial_count": 2,
+    "blank_count": 0,
+    "invalid_count": 0,
+    "wrong_questions": "3",
+    "blank_questions": "",
+    "remark": "未及格"
+  }
+]

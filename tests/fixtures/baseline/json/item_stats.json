@@ -1,0 +1,49 @@
+[
+  {
+    "question": 1,
+    "tags": "linear_equation",
+    "answer": "A",
+    "accuracy": 66.67,
+    "blank_rate": 0.0,
+    "invalid_rate": 0.0,
+    "wrong_rate": 33.33,
+    "partial_rate": 0.0,
+    "mistake_count": 1,
+    "distribution": {
+      "A": 2,
+      "B": 1
+    }
+  },
+  {
+    "question": 2,
+    "tags": "function_concept",
+    "answer": "BD",
+    "accuracy": 33.33,
+    "blank_rate": 0.0,
+    "invalid_rate": 0.0,
+    "wrong_rate": 0.0,
+    "partial_rate": 66.67,
+    "mistake_count": 2,
+    "distribution": {
+      "B": 1,
+      "BD": 1,
+      "D": 1
+    }
+  },
+  {
+    "question": 3,
+    "tags": "geometry_area",
+    "answer": "C",
+    "accuracy": 33.33,
+    "blank_rate": 33.33,
+    "invalid_rate": 0.0,
+    "wrong_rate": 33.33,
+    "partial_rate": 0.0,
+    "mistake_count": 1,
+    "distribution": {
+      "C": 1,
+      "(blank)": 1,
+      "A": 1
+    }
+  }
+]

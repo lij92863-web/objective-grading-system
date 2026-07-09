@@ -1,0 +1,14 @@
+{
+  "title": "普通版报告 - fx",
+  "sections": [
+    "普通版报告",
+    "学生成绩表",
+    "每题正确率",
+    "每题正确率表",
+    "错得最多的题 Top 5"
+  ],
+  "links": [
+    "simple_score_report.xlsx"
+  ],
+  "has_table": true
+}

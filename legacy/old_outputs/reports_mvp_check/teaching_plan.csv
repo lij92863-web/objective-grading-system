@@ -1,4 +1,0 @@
-﻿priority_level,question_id,accuracy,blank_rate,main_wrong_answer,tags,reason,teaching_suggestion
-重点讲评,Q2,33.33,0.0,B（1人）,function_concept,正确率较低或空白较多,先讲清核心思路，再安排同类题即时巩固。
-重点讲评,Q3,33.33,33.33,A（1人）,geometry_area,正确率较低或空白较多,先讲清核心思路，再安排同类题即时巩固。
-选择性讲评,Q1,66.67,0.0,B（1人）,linear_equation,部分学生掌握不稳,针对主要错误选项讲解，保留学生订正时间。

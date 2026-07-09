@@ -1,4 +1,0 @@
-﻿student_id,name,score,max_score,percent,rank,weak_tags,wrong_questions,partial_questions,blank_questions,invalid_questions
-S001,Student One,3.0,4.0,75.0,1,function_concept,,2,,
-S002,Student Two,2.0,4.0,50.0,2,geometry_area;linear_equation,1,,3,
-S003,Student Three,2.0,4.0,50.0,2,function_concept;geometry_area,3,2,,

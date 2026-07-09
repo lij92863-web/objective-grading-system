@@ -313,6 +313,128 @@ class ExcelLegacyBehaviorTests(unittest.TestCase):
         finally:
             shutil.rmtree(t, ignore_errors=True)
 
+    # -- xlsx internal structure (zipfile + XML, no openpyxl) ------------------
+
+    def test_full_workbook_worksheets_xml_exist(self):
+        """Every declared sheet must have a corresponding worksheet XML file."""
+        t = tempfile.mkdtemp(prefix="e3a_", dir=PROJECT_ROOT / "data")
+        try:
+            from app.workflow import run_grading
+            run_grading(DEMO_KEY, DEMO_SUB, Path(t), no_archive=True, exam_name="x")
+            fp = Path(t) / "exam_report.xlsx"
+            sheets = _get_xlsx_sheet_names(fp)
+            with zipfile.ZipFile(fp) as z:
+                names = set(z.namelist())
+                for idx in range(1, len(sheets) + 1):
+                    sheet_path = f"xl/worksheets/sheet{idx}.xml"
+                    self.assertIn(sheet_path, names,
+                                  f"Missing {sheet_path}")
+        finally:
+            shutil.rmtree(t, ignore_errors=True)
+
+    def test_full_workbook_inlinestr_not_sharedstrings(self):
+        """Legacy uses inlineStr, not sharedStrings, for cell values.
+
+        This is a deliberate implementation choice — the pure-Python
+        zipfile+XML path writes ``t=\"inlineStr\"`` cells directly.
+        sharedStrings.xml may or may not exist, and new exporters
+        should preserve this characteristic unless a styled path
+        (openpyxl) is active.
+        """
+        t = tempfile.mkdtemp(prefix="e3a_", dir=PROJECT_ROOT / "data")
+        try:
+            from app.workflow import run_grading
+            run_grading(DEMO_KEY, DEMO_SUB, Path(t), no_archive=True, exam_name="x")
+            fp = Path(t) / "exam_report.xlsx"
+            with zipfile.ZipFile(fp) as z:
+                names = set(z.namelist())
+                # sharedStrings.xml is NOT required — legacy uses inlineStr
+                # Just record the fact; do not mandate its absence.
+                for sheet_idx in range(1, 10):
+                    sheet_xml = z.read(
+                        f"xl/worksheets/sheet{sheet_idx}.xml"
+                    ).decode("utf-8")
+                    # At least one cell with inlineStr should exist
+                    # in sheets that have data
+                    if "inlineStr" in sheet_xml:
+                        break
+                else:
+                    # If no sheet has inlineStr, something changed
+                    self.fail(
+                        "No inlineStr cells found in any worksheet — "
+                        "legacy xlsx generation method may have changed")
+        finally:
+            shutil.rmtree(t, ignore_errors=True)
+
+    def test_full_workbook_no_styles_xml(self):
+        """Legacy fallback (no openpyxl) does NOT emit xl/styles.xml.
+
+        Styles (header_fill, error_fill, column widths, freeze panes)
+        are only available through the openpyxl enhanced path.  The
+        zipfile+XML fallback produces plain unstyled sheets.
+        """
+        t = tempfile.mkdtemp(prefix="e3a_", dir=PROJECT_ROOT / "data")
+        try:
+            from app.workflow import run_grading
+            run_grading(DEMO_KEY, DEMO_SUB, Path(t), no_archive=True, exam_name="x")
+            fp = Path(t) / "exam_report.xlsx"
+            with zipfile.ZipFile(fp) as z:
+                names = set(z.namelist())
+                self.assertNotIn("xl/styles.xml", names,
+                                 "legacy fallback should not emit styles.xml")
+        finally:
+            shutil.rmtree(t, ignore_errors=True)
+
+    def test_full_workbook_inlinestr_cell_values_parseable(self):
+        """InlineStr cells must contain valid, parseable text values.
+
+        Legacy writes ALL cell values as ``t=\"inlineStr\"`` — the text is
+        embedded directly in the worksheet XML (no sharedStrings indirection).
+        This test verifies that the inlineStr values can be extracted and
+        match known header text.  Chinese encoding is separately verified
+        through sheet-name inspection in test_full_workbook_chinese_not_garbled.
+        """
+        t = tempfile.mkdtemp(prefix="e3a_", dir=PROJECT_ROOT / "data")
+        try:
+            from app.workflow import run_grading
+            run_grading(DEMO_KEY, DEMO_SUB, Path(t), no_archive=True, exam_name="x")
+            fp = Path(t) / "exam_report.xlsx"
+            with zipfile.ZipFile(fp) as z:
+                sheet1_xml = z.read("xl/worksheets/sheet1.xml").decode("utf-8")
+                self.assertIn("inlineStr", sheet1_xml,
+                              "sheet1 should use inlineStr cells")
+                ns = {"ns": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+                sroot = ET.fromstring(sheet1_xml)
+                inline_texts = []
+                for cell in sroot.findall(".//ns:c", ns):
+                    is_elem = cell.find(".//ns:is", ns)
+                    if is_elem is not None:
+                        t_elem = is_elem.find("ns:t", ns)
+                        if t_elem is not None and t_elem.text:
+                            inline_texts.append(t_elem.text)
+                self.assertGreater(
+                    len(inline_texts), 0,
+                    "No inlineStr cell values found in sheet1")
+                # First row should be header — verify at least one known field
+                self.assertIn("student_id", inline_texts,
+                              "Header field 'student_id' not found in inlineStr")
+        finally:
+            shutil.rmtree(t, ignore_errors=True)
+
+    def test_simple_score_workbook_worksheets_xml_exist(self):
+        """Simple score workbook must have at least one worksheet XML."""
+        t = tempfile.mkdtemp(prefix="e3a_", dir=PROJECT_ROOT / "data")
+        try:
+            from app.workflow import run_grading
+            run_grading(DEMO_KEY, DEMO_SUB, Path(t), no_archive=True, exam_name="x")
+            fp = Path(t) / "simple_score_report.xlsx"
+            with zipfile.ZipFile(fp) as z:
+                names = set(z.namelist())
+                self.assertIn("xl/worksheets/sheet1.xml", names,
+                              "Missing xl/worksheets/sheet1.xml in simple workbook")
+        finally:
+            shutil.rmtree(t, ignore_errors=True)
+
     # -- openpyxl-dependent tests (skipped when unavailable) -------------------
 
     @unittest.skipUnless(OPENPYXL_AVAILABLE, "openpyxl not installed")

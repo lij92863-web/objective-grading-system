@@ -1,9 +1,0 @@
-{
-  "batch_id": "bc-mal",
-  "scenario": "with_review",
-  "expected_status": "completed_with_review",
-  "expected_review": 3,
-  "expected_blocking": 0,
-  "expected_qwen": 3,
-  "expected_ready": 0
-}

@@ -1,6 +1,7 @@
 """R117: Teacher resolution actions — item-aware validation."""
 from dataclasses import dataclass
 from typing import Optional
+from .error_codes import IDENTITY_ERROR_CODES
 
 VALID_ACTIONS = {"accept_candidate", "correct_answer", "mark_blank",
                   "reject_candidate", "block_submission",
@@ -25,7 +26,7 @@ class TeacherResolution:
                 errors.append(f"ITEM_ID_MISMATCH:expected={item.item_id},got={self.item_id}")
                 return errors
             is_identity = (item.item_type == "identity" or
-                           any("identity" in str(c) for c in (item.exception_codes or [])))
+                           any(str(c) in IDENTITY_ERROR_CODES for c in (item.exception_codes or [])))
             is_blocking = item.is_blocking()
             if self.action == "accept_candidate":
                 if is_blocking:

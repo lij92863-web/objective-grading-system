@@ -3,6 +3,7 @@ import uuid
 from typing import List, Dict
 from .review_queue import ReviewQueueItem
 from .contracts import RecognitionDecision
+from .error_codes import BLOCKING_ERROR_CODES, lookup
 
 
 EXCEPTION_TYPE_ITEM_TYPE = {
@@ -19,11 +20,10 @@ EXCEPTION_BLOCKING = {"IDENTITY_CONFLICT", "IDENTITY_MISSING", "INVALID_OPTION",
 
 
 def _infer_type(reason: str) -> str:
-    r = reason.lower()
-    if "identity" in r: return "identity"
-    if "blank" in r: return "blank"
-    if "engine" in r or "qwen" in r: return "engine_error"
-    if "layout" in r or "roi" in r: return "layout"
+    if reason:
+        policy = lookup(reason)
+        if policy["item_type"] != "unknown":
+            return policy["item_type"]
     return "choice"
 
 
@@ -34,12 +34,13 @@ def build_review_queue(decisions: List[RecognitionDecision],
     for d in decisions:
         if d.status == "auto_accepted" and not d.needs_review:
             continue
-        severity = "blocking" if d.blocking else "review"
-        item_type = _infer_type(d.reason)
         exc_codes = []
         if exceptions:
             exc_codes = [e.get("code", "") for e in exceptions
                          if e.get("question_number") == d.question_number or not e.get("question_number")]
+        policy_code = exc_codes[0] if exc_codes else d.reason
+        item_type = lookup(policy_code)["item_type"] if policy_code else _infer_type(d.reason)
+        severity = "blocking" if d.blocking or policy_code in BLOCKING_ERROR_CODES else "review"
         items.append(ReviewQueueItem(
             item_id=str(uuid.uuid4())[:8], draft_id=draft_id,
             student_ref=student_ref, question_id=d.question_number,
@@ -51,11 +52,12 @@ def build_review_queue(decisions: List[RecognitionDecision],
             qn = exc.get("question_number", 0)
             if qn and not any(i.question_id == qn for i in items):
                 code = exc.get("code", "")
-                severity = "blocking" if code in EXCEPTION_BLOCKING else "review"
+                policy = lookup(code)
+                severity = policy["severity"]
                 items.append(ReviewQueueItem(
                     item_id=str(uuid.uuid4())[:8], draft_id=draft_id,
                     student_ref=student_ref, question_id=qn,
-                    item_type=EXCEPTION_TYPE_ITEM_TYPE.get(code, "engine_error"),
+                    item_type=policy["item_type"],
                     reason=code, exception_codes=[code],
                     severity=severity, status="pending"))
     return items

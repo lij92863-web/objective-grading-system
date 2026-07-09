@@ -30,3 +30,15 @@ def lookup(code: str) -> dict:
 
 def all_codes() -> set:
     return set(ERROR_CODES.keys())
+
+
+IDENTITY_ERROR_CODES = {"identity_missing", "identity_conflict", "duplicate_identity"}
+QWEN_ERROR_CODES = {"qwen_disabled", "qwen_budget_exceeded", "malformed_response", "timeout", "rate_limit", "auth_error"}
+ROI_ERROR_CODES = {"missing_roi"}
+LAYOUT_ERROR_CODES = {"layout_missing", "invalid_image"}
+BLOCKING_ERROR_CODES = {code for code, policy in ERROR_CODES.items() if policy["severity"] == "blocking"}
+REVIEW_REQUIRED_ERROR_CODES = {code for code, policy in ERROR_CODES.items() if policy["review_required"]}
+
+
+def is_known_code(code: str) -> bool:
+    return code in ERROR_CODES

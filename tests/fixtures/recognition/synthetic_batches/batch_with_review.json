@@ -1,9 +1,20 @@
 {
-  "batch_id": "bc-review",
+  "schema_version": 4,
+  "batch_id": "batch-with-review",
+  "exam_id": "exam-001",
   "scenario": "with_review",
-  "expected_status": "completed_with_review",
-  "expected_review": 3,
-  "expected_blocking": 0,
-  "expected_qwen": 3,
-  "expected_ready": 0
+  "students": [
+    {"student_ref": "S001", "display_name": "Synthetic Student 1", "identity_status": "confirmed"},
+    {"student_ref": "S002", "display_name": "Synthetic Student 2", "identity_status": "confirmed"}
+  ],
+  "items": [
+    {"student_ref": "S001", "question_id": "Q1", "question_type": "choice", "source": "omr", "omr_status": "clear", "omr_answer": "A", "omr_confidence": 0.98, "qwen_required": false, "qwen_response_kind": "none", "expected_decision_status": "auto_accepted", "expected_exception_codes": []},
+    {"student_ref": "S001", "question_id": "Q2", "question_type": "choice", "source": "omr", "omr_status": "ambiguous", "omr_answer": "?", "omr_confidence": 0.52, "qwen_required": true, "qwen_response_kind": "conflict", "expected_decision_status": "needs_review", "expected_exception_codes": ["omr_qwen_conflict"]},
+    {"student_ref": "S001", "question_id": "Q3", "question_type": "blank", "source": "omr", "omr_status": "clear", "omr_answer": "42", "omr_confidence": 0.96, "qwen_required": false, "qwen_response_kind": "none", "expected_decision_status": "auto_accepted", "expected_exception_codes": []},
+    {"student_ref": "S002", "question_id": "Q1", "question_type": "choice", "source": "omr", "omr_status": "clear", "omr_answer": "C", "omr_confidence": 0.98, "qwen_required": false, "qwen_response_kind": "none", "expected_decision_status": "auto_accepted", "expected_exception_codes": []},
+    {"student_ref": "S002", "question_id": "Q2", "question_type": "choice", "source": "omr", "omr_status": "clear", "omr_answer": "D", "omr_confidence": 0.97, "qwen_required": false, "qwen_response_kind": "none", "expected_decision_status": "auto_accepted", "expected_exception_codes": []},
+    {"student_ref": "S002", "question_id": "Q3", "question_type": "blank", "source": "omr", "omr_status": "clear", "omr_answer": "24", "omr_confidence": 0.96, "qwen_required": false, "qwen_response_kind": "none", "expected_decision_status": "auto_accepted", "expected_exception_codes": []}
+  ],
+  "qwen_budget": {"enabled": true, "max_calls": 5, "estimated_calls": 1},
+  "expected": {"batch_status": "completed_with_review", "total_students": 2, "total_items": 6, "auto_accepted_items": 5, "needs_review_items": 1, "blocking_items": 0, "qwen_call_count": 1, "blocked_by_budget_count": 0, "ready_students": 1, "needs_review_students": 1, "blocked_students": 0}
 }

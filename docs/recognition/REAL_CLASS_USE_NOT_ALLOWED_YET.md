@@ -1,6 +1,25 @@
 # Real Class Use NOT Allowed Yet
 
-Current: synthetic no-real-image regression only.
-Must complete R121-R140 (single anonymous image trial) before any real trial.
-Must complete 3-image trial before small batch.
-No formal grading, no real class batch.
+Current status: synthetic fixtures and no-real-image regression only.
+
+Not allowed now:
+
+- real paper grading
+- real image batch recognition
+- real class use
+- real batch Qwen
+- formal CSV, Excel, or HTML score reports from recognition
+
+The next real-paper step must be:
+
+1. one anonymous image
+2. manual ROI
+3. Qwen `--check-only`
+4. one explicit `--allow-real-api` trial
+5. sanitized output audit
+6. parser candidate audit
+7. review queue audit
+8. three anonymous images
+9. small batch gate
+
+Small batch still does not mean formal launch.

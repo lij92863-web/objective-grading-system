@@ -3,6 +3,7 @@ from typing import Dict, List
 from .review_queue import ReviewQueueItem
 from .teacher_resolution import TeacherResolution, resolve_item, VALID_ACTIONS
 from .contracts import RecognizedSubmissionDraft
+from .error_codes import IDENTITY_ERROR_CODES
 
 
 def apply_resolutions(draft: RecognizedSubmissionDraft,
@@ -21,7 +22,11 @@ def apply_resolutions(draft: RecognizedSubmissionDraft,
             if item.is_blocking() and r.action == "accept_candidate":
                 blockers.append(f"BLOCKING_ITEM_CANNOT_ACCEPT:{item.item_id}")
                 continue
-            if "identity" in item.reason.lower() and r.action == "accept_candidate":
+            is_identity_item = (
+                item.item_type == "identity" or
+                any(code in IDENTITY_ERROR_CODES for code in item.exception_codes)
+            )
+            if is_identity_item and r.action == "accept_candidate":
                 blockers.append(f"IDENTITY_ITEM_REQUIRES_SPECIFIC_CONFIRMATION:{item.item_id}")
                 continue
             try:

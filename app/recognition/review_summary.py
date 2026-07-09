@@ -1,6 +1,7 @@
 """R85: Review queue teacher-facing summary."""
 from typing import Dict, List
 from .review_queue import ReviewQueueItem
+from .error_codes import IDENTITY_ERROR_CODES
 
 
 def build_review_summary(items: List[ReviewQueueItem]) -> dict:
@@ -13,5 +14,9 @@ def build_review_summary(items: List[ReviewQueueItem]) -> dict:
             "pending_count": sum(1 for i in items if i.status == "pending"),
             "blocking_count": sum(1 for i in items if i.is_blocking()),
             "by_reason": by_reason, "by_student": by_student,
-            "identity_blocking": sum(1 for i in items if i.is_blocking() and "identity" in i.reason.lower()),
-            "omr_qwen_conflict": sum(1 for i in items if "conflict" in i.reason.lower())}
+            "identity_blocking": sum(1 for i in items if i.is_blocking() and _is_identity_item(i)),
+            "omr_qwen_conflict": sum(1 for i in items if i.reason == "omr_qwen_conflict")}
+
+
+def _is_identity_item(item: ReviewQueueItem) -> bool:
+    return item.item_type == "identity" or any(code in IDENTITY_ERROR_CODES for code in item.exception_codes)

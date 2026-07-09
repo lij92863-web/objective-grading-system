@@ -15,6 +15,9 @@ class BatchRecognitionSummary:
     qwen_call_count: int = 0
     omr_only_count: int = 0
     qwen_needed_count: int = 0
+    qwen_call_skipped_count: int = 0
+    blocked_by_budget_count: int = 0
+    cache_hit_count: int = 0
     estimated_cost: float = 0.0
 
 

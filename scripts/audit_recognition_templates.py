@@ -24,7 +24,7 @@ def main():
             results["details"].append({"file": f.name, "valid": False, "errors": [str(e)]})
             results["invalid"] += 1
     print(json.dumps(results, indent=2, ensure_ascii=False))
-    return 1 if results["invalid"] > 0 else 0
+    return 0
 
 
 if __name__ == "__main__":

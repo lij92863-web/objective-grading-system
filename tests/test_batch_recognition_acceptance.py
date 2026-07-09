@@ -42,11 +42,11 @@ class BatchRecognitionAcceptanceTests(unittest.TestCase):
 
     def test_synthetic_batch_cli(self):
         r = subprocess.run([sys.executable,
-            str(PROJECT_ROOT/"scripts/run_synthetic_batch_recognition.py"), "--count", "3"],
+            str(PROJECT_ROOT/"scripts/run_synthetic_batch_recognition.py"), "--scenario", "all_clear", "--count", "3", "--json"],
             capture_output=True, text=True, timeout=10)
         self.assertEqual(r.returncode, 0)
         data = json.loads(r.stdout)
-        self.assertEqual(len(data["images"]), 3)
+        self.assertEqual(data["images"], 3)
 
     def test_evaluate_synthetic_cli(self):
         r = subprocess.run([sys.executable,

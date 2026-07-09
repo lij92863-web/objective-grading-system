@@ -26,16 +26,8 @@ ALLOWED_LEGACY_TEST_IMPORTS = {
     "tests/test_workflow_grading_core_guard.py",
     "tests/test_facade_legacy_dependency_guard.py",
     "tests/test_code_readability_guard.py",
-    # Remaining parity/integration (deferred to next round)
-    # Compat test (must keep — verifies legacy entrypoints exist)
+    # Compat only — verifies legacy entrypoints exist
     "tests/test_legacy_entrypoints_import.py",
-    # Remaining parity/integration (deferred — need deeper refactoring)
-    "tests/test_csv_report_pipeline_shadow_parity.py",
-    "tests/test_excel_exporter_shadow_parity.py",
-    "tests/test_html_exporter_shadow_parity.py",
-    "tests/test_workflow_builder_integration.py",
-    "tests/test_workflow_grading_core_integration.py",
-    "tests/test_workflow_validation_error_path.py",
 }
 
 
@@ -70,7 +62,7 @@ class TestsNoLegacyBaselineGuardTests(unittest.TestCase):
     def test_whitelist_count_reasonable(self):
         """Whitelist reduced from 26→17→13 after B5 conversion."""
         self.assertLessEqual(
-            len(ALLOWED_LEGACY_TEST_IMPORTS), 35, "max 35")
+            len(ALLOWED_LEGACY_TEST_IMPORTS), 25, "max 25")
 
 
 if __name__ == "__main__":

@@ -56,10 +56,11 @@ class WorkflowLegacyHtmlCallGuardTests(unittest.TestCase):
                           f"workflow missing import: {name}")
 
     def test_workflow_still_imports_legacy(self):
+        """D4: workflow NO LONGER imports legacy."""
         text = (PROJECT_ROOT / "app" / "workflow.py").read_text(
             encoding="utf-8")
-        self.assertIn("from legacy import", text,
-                      "workflow should still import legacy for data")
+        self.assertNotIn("from legacy import", text,
+                         "workflow should no longer import legacy")
 
 
 if __name__ == "__main__":

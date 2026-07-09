@@ -68,11 +68,11 @@ class WorkflowLegacyExcelCallGuardTests(unittest.TestCase):
                       "workflow should import WorkbookExporter")
 
     def test_workflow_still_imports_legacy(self):
-        """Legacy is still used for data loading and HTML."""
+        """D4: workflow NO LONGER imports legacy."""
         text = (PROJECT_ROOT / "app" / "workflow.py").read_text(
             encoding="utf-8")
-        self.assertIn("from legacy import", text,
-                      "workflow should still import legacy for data/HTML")
+        self.assertNotIn("from legacy import", text,
+                         "workflow should no longer import legacy")
 
 
 if __name__ == "__main__":

@@ -11,9 +11,10 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, Iterable, List, Optional, Tuple
 
-from legacy import objective_grader_legacy as legacy
 from app.validators import has_blocking_errors
 from app.domain.grading import grade_all
+from app.application.contracts.exam_metadata import ExamMeta
+from app.infrastructure.loaders.question_bank_loader import load_question_bank
 from app.infrastructure.exporters.html_helpers import html_escape, safe_slug as _safe_slug
 from app.infrastructure.exporters.contracts import ExportRequest
 from app.infrastructure.exporters.simple_score_workbook_exporter import (
@@ -216,7 +217,7 @@ def build_teaching_plan(item_rows: List[Dict[str, object]]) -> List[Dict[str, ob
     return sorted(rows, key=lambda item: (order.get(str(item["priority_level"]), 9), float(item["accuracy"])))
 
 
-def build_student_wrong_list(results: List[legacy.StudentResult]) -> List[Dict[str, object]]:
+def build_student_wrong_list(results: List[Any]) -> List[Dict[str, object]]:
     rows: List[Dict[str, object]] = []
     for result in results:
         wrong = []
@@ -246,9 +247,9 @@ def build_student_wrong_list(results: List[legacy.StudentResult]) -> List[Dict[s
 
 
 def build_class_remedial_package(
-    profiles: List[legacy.KnowledgeProfile],
+    profiles: List[SimpleNamespace],
     teaching_rows: List[Dict[str, object]],
-    question_bank: Optional[List[legacy.BankQuestion]] = None,
+    question_bank: Optional[List[SimpleNamespace]] = None,
 ) -> List[Dict[str, object]]:
     question_bank = question_bank or []
     if not question_bank:
@@ -269,12 +270,12 @@ def build_class_remedial_package(
             }
             for tag in weak_tags
         ]
-    bank_by_tag: Dict[str, List[legacy.BankQuestion]] = defaultdict(list)
+    bank_by_tag: Dict[str, List[SimpleNamespace]] = defaultdict(list)
     for question in question_bank:
         for tag in question.tags:
             bank_by_tag[tag].append(question)
 
-    tag_profiles: Dict[str, List[legacy.KnowledgeProfile]] = defaultdict(list)
+    tag_profiles: Dict[str, List[SimpleNamespace]] = defaultdict(list)
     for profile in profiles:
         tag_profiles[profile.tag].append(profile)
 
@@ -305,7 +306,7 @@ def build_class_remedial_package(
 
 
 def build_layered_remedial_plan(
-    results: List[legacy.StudentResult],
+    results: List[Any],
     teaching_rows: List[Dict[str, object]],
 ) -> List[Dict[str, object]]:
     focus_questions = [str(row["question_id"]) for row in teaching_rows if row.get("priority_level") in {"重点讲评", "选择性讲评"}]
@@ -410,7 +411,7 @@ def replace_report_outputs(temp_dir: Path, out_dir: Path) -> None:
 def archive_exam_reports(
     source_dir: Path,
     archive_root: Path,
-    meta: legacy.ExamMeta,
+    meta: ExamMeta,
     report_paths: Iterable[Path],
     run_id: str,
     source_files: Optional[Dict[str, str]] = None,
@@ -464,14 +465,14 @@ def run_grading(
     answer_key = load_answer_key(answer_key_path)
     submissions = load_submissions(submissions_path, answer_key)
     results = grade_all(answer_key, submissions)
-    meta = legacy.ExamMeta(exam_name=exam_name, class_name=class_name, subject=subject, exam_date=exam_date)
+    meta = ExamMeta(exam_name=exam_name, class_name=class_name, subject=subject, exam_date=exam_date)
     profile_rows = build_knowledge_profiles(
         [_legacy_spec_to_dict(spec) for spec in answer_key.questions],
         [_legacy_result_to_dict(result) for result in results],
         weak_threshold=weak_threshold,
     )
     profiles = [profile_row_to_object(row) for row in profile_rows]
-    question_bank = legacy.load_question_bank(question_bank_path) if question_bank_path else None
+    question_bank = load_question_bank(question_bank_path) if question_bank_path else None
     validation_rows = build_validation_report(
         answer_key_to_validation_dict(answer_key),
         [_legacy_sub_to_dict(submission) for submission in submissions],

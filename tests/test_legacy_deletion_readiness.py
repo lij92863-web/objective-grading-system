@@ -52,9 +52,9 @@ class LegacyDeletionReadinessTests(unittest.TestCase):
                 self.assertEqual([], imps, f"{f} imports legacy: {imps}")
 
     def test_workflow_imports_legacy_recorded(self):
-        """workflow.py imports legacy — recorded as known state."""
+        """workflow.py NO LONGER imports legacy (D2 completed)."""
         imps = _imports_legacy(PROJECT_ROOT / "app" / "workflow.py")
-        self.assertTrue(imps, "workflow.py should still import legacy")
+        self.assertFalse(imps, "workflow.py should no longer import legacy")
 
     def test_objective_grader_imports_legacy_recorded(self):
         imps = _imports_legacy(PROJECT_ROOT / "objective_grader.py")

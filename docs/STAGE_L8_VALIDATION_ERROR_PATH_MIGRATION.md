@@ -57,3 +57,27 @@ L8A conclusion: this path is safe to migrate to the existing
 `ValidationReportCsvExporter` after parity tests cover both direct writer output
 and workflow blocked output.
 
+## L8B Writer Migration
+
+No new `app/infrastructure/validation` module is needed. The existing
+`ValidationReportCsvExporter` is the migration target for the legacy
+`write_validation_report` writer because it:
+
+- lives in infrastructure;
+- imports neither `legacy` nor `web`;
+- writes only supplied rows;
+- keeps the legacy filename `validation_report.csv`;
+- uses field order `severity`, `scope`, `item`, `message`;
+- uses the shared CSV helper with `utf-8-sig` encoding.
+
+Additional parity tests compare direct legacy writer output against
+`ValidationReportCsvExporter` output for:
+
+- regular rows;
+- Chinese content;
+- empty rows;
+- field order;
+- byte-level file content.
+
+L8B conclusion: `ValidationReportCsvExporter` is the writer replacement for
+workflow's validation error path.

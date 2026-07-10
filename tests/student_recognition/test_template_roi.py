@@ -61,6 +61,23 @@ def _validate(d):
 
 
 class TestTemplateRoi(unittest.TestCase):
+    def _assert_out_of_bounds(self, roi):
+        data = _valid_dict()
+        data["pages"][0]["identity"]["combined_identity_roi"] = roi
+        report = _validate(data)
+        self.assertIn(ErrorCode.TEMPLATE_ROI_OUT_OF_BOUNDS, {e.code for e in report.errors})
+
+    def test_roi_negative_x_is_invalid(self):
+        self._assert_out_of_bounds({"x": -0.1, "y": 0.1, "w": 0.1, "h": 0.1})
+
+    def test_roi_negative_y_is_invalid(self):
+        self._assert_out_of_bounds({"x": 0.1, "y": -0.1, "w": 0.1, "h": 0.1})
+
+    def test_roi_width_over_one_is_invalid(self):
+        self._assert_out_of_bounds({"x": 0.0, "y": 0.0, "w": 1.1, "h": 0.1})
+
+    def test_roi_height_over_one_is_invalid(self):
+        self._assert_out_of_bounds({"x": 0.0, "y": 0.0, "w": 0.1, "h": 1.1})
     def test_template_rejects_roi_out_of_bounds(self):
         d = _valid_dict()
         d["pages"][0]["identity"]["combined_identity_roi"] = {

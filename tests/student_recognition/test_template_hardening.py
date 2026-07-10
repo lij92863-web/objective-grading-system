@@ -58,6 +58,24 @@ class TestTemplateHardening(unittest.TestCase):
         anchors = profile.get_page_anchors(1)
         anchors[0]["x"] = .99
         self.assertNotEqual(profile.get_page_anchors(1)[0]["x"], .99)
+
+    def test_profile_get_question_block_returns_defensive_copy(self):
+        profile = TemplateProfile.from_dict(_valid_dict())
+        block = profile.get_question_block(1)
+        block["options"].clear()
+        self.assertEqual(profile.get_question_block(1)["options"], ["A", "B", "C", "D"])
+
+    def test_profile_to_dict_returns_defensive_copy(self):
+        profile = TemplateProfile.from_dict(_valid_dict())
+        exported = profile.to_dict()
+        exported["pages"].clear()
+        self.assertEqual(len(profile.to_dict()["pages"]), 1)
+
+    def test_profile_source_dict_mutation_does_not_affect_profile(self):
+        source = _valid_dict()
+        profile = TemplateProfile.from_dict(source)
+        source["pages"].clear()
+        self.assertEqual(len(profile.to_dict()["pages"]), 1)
     def test_template_store_default_dir_is_runtime_data_not_tests_fixtures(self):
         s=str(DEFAULT_TEMPLATES_DIR).replace("\\","/"); self.assertIn("data/student_recognition/templates",s); self.assertNotIn("tests/student_recognition/fixtures",s)
     def test_template_store_tests_use_tempdir(self):

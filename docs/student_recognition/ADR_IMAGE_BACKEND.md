@@ -1,0 +1,3 @@
+# ADR: Image Backend
+
+Decision: keep the stdlib PNG/PPM backend as the mandatory baseline and isolate optional cv2 discovery in `image/backend.py`. No dependency is added. Pure stdlib is sufficient for synthetic fixtures but not production perspective correction. A future `opencv-python-headless` decision would require separate approval because Windows wheels, installation size and native runtime availability create operational risk. Without cv2, real-photo processing remains gracefully unavailable while synthetic tests continue. This ADR does not authorize requirements changes or real student images.

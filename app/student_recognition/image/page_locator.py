@@ -29,3 +29,18 @@ def locate_page(
         )
     corners = ((0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0))
     return PageLocationReport("page_located", corners, 1.0)
+
+
+def locate_page_after_quality(
+    image: ImageMatrix,
+    quality_report,
+    reference_width: int,
+    reference_height: int,
+    policy: PageLocatorPolicy = DEFAULT_PAGE_LOCATOR_POLICY,
+) -> PageLocationReport:
+    """Enforce the quality gate before any page-location attempt."""
+    if quality_report.status == "quality_failed":
+        return PageLocationReport(
+            "page_location_failed", (), 0.0, tuple(quality_report.errors)
+        )
+    return locate_page(image, reference_width, reference_height, policy)

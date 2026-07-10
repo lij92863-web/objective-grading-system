@@ -1,6 +1,7 @@
 import unittest
 from app.student_recognition.image.image_types import ImageMatrix
-from app.student_recognition.image.page_locator import locate_page
+from app.student_recognition.image.page_locator import locate_page, locate_page_after_quality
+from app.student_recognition.image.image_quality import assess_image_quality
 from app.student_recognition.image.page_normalizer import normalize_page
 
 def page(w=240,h=360): return ImageMatrix(w,h,tuple(0 if x in (10,w-11) or y in (10,h-11) else 255 for y in range(h) for x in range(w)))
@@ -14,4 +15,8 @@ class TestPageNormalization(unittest.TestCase):
     def test_page_location_failed_blocks_roi_mapping(self):
         im=ImageMatrix(240,360,(255,)*86400)
         with self.assertRaises(ValueError): normalize_page(im,locate_page(im,240,360),240,360)
+    def test_quality_failed_blocks_page_location(self):
+        image = ImageMatrix(20, 20, (255,) * 400)
+        report = locate_page_after_quality(image, assess_image_quality(image), 240, 360)
+        self.assertEqual(report.status, "page_location_failed")
 if __name__=="__main__": unittest.main()

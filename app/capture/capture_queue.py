@@ -77,6 +77,8 @@ class CaptureQueue:
             if session.state not in {
                 ExamSessionState.CAPTURE_READY,
                 ExamSessionState.CAPTURING,
+                ExamSessionState.PROCESSING,
+                ExamSessionState.REVIEW_REQUIRED,
             }:
                 raise ValueError("session is not capture ready")
             duplicate = self._find_hash(connection, session_id, digest)

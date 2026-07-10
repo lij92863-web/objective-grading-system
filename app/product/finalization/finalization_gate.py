@@ -10,7 +10,10 @@ from app.storage.local_db import LocalDatabase
 from app.storage.repositories import ProductRepository
 from app.student_recognition.grading_bridge.grading_gate import (
     ExamOfficialReportGate,
-    TeacherConfirmedSubmission,
+    GradingGate,
+)
+from app.product.finalization.confirmed_submission_builder import (
+    ConfirmedSubmissionBuilder,
 )
 from app.product.scoring.manual_score_policy import (
     ManualScorePolicy,
@@ -37,6 +40,7 @@ class FinalizationGate:
     def __init__(self, database: LocalDatabase) -> None:
         self.database = database
         self.storage = ProductRepository()
+        self.confirmed_builder = ConfirmedSubmissionBuilder()
 
     def evaluate(self, session_id: str) -> GateDecision:
         blockers: list[str] = []
@@ -122,6 +126,11 @@ class FinalizationGate:
                         answer_key,
                     )
                 )
+            confirmed_build = self.confirmed_builder.build(
+                connection,
+                session_id,
+                submissions,
+            )
 
         if answer_key is None:
             blockers.append("answer_key_missing")
@@ -134,20 +143,15 @@ class FinalizationGate:
         else:
             blockers.append("final_submissions_missing")
 
-        confirmed = [
-            TeacherConfirmedSubmission(
-                job_id=str(row["capture_job_id"]),
-                draft_snapshot={"blocking_errors": [], "review_items": []},
-                confirmed_by="teacher",
-                confirmed_at="confirmed",
-                identity={"student_id": submission.student_id},
-            )
-            for row, submission in zip(
-                [row for row in draft_rows if row["capture_job_id"] in included_jobs],
-                submissions,
-            )
-        ]
-        bridge = ExamOfficialReportGate().try_pass(confirmed, exam_id=session_id)
+        blockers.extend(confirmed_build.blockers)
+        for confirmed_submission in confirmed_build.submissions:
+            item_bridge = GradingGate().try_build(confirmed_submission)
+            if not item_bridge.ok:
+                blockers.append(f"grading_bridge:{item_bridge.code.value}")
+        bridge = ExamOfficialReportGate().try_pass(
+            list(confirmed_build.submissions),
+            exam_id=session_id,
+        )
         if not bridge.ok:
             blockers.append(f"grading_bridge:{bridge.code.value}")
         unique_blockers = tuple(dict.fromkeys(blockers))
@@ -156,7 +160,10 @@ class FinalizationGate:
             unique_blockers,
             answer_key,
             tuple(submissions),
-            tuple(draft_rows),
+            tuple(
+                row for row in draft_rows
+                if row["capture_job_id"] in included_jobs
+            ),
         )
 
     def _draft_rows(self, connection, session_id: str) -> list[dict[str, object]]:

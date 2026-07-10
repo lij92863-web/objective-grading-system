@@ -1,6 +1,7 @@
 import json
 import tempfile
 import unittest
+import uuid
 from pathlib import Path
 from unittest import mock
 
@@ -8,6 +9,9 @@ from app.capture import CaptureQueue, CaptureSourceType
 from app.classes import ClassService
 from app.exam_session import AssetService, AssetType, SessionService
 from app.product.finalization import FinalScoreService, FinalizationGateState
+from app.product.finalization.confirmed_submission_builder import (
+    ConfirmedSubmissionBuilder,
+)
 from app.product.pipeline import MockRecognitionInput, ProductPipeline
 from app.product.review.manual_resolution import TeacherAction
 from app.product.review.review_workflow import ReviewWorkflow
@@ -162,6 +166,141 @@ class FinalizationGateTests(unittest.TestCase):
                 (self.session.session_id,),
             ).fetchone()[0]
         self.assertEqual(state, "FINALIZED")
+
+    def test_confirmed_snapshot_uses_persisted_draft_and_review_history(self):
+        result = self.process(
+            b"snapshot",
+            MockRecognitionInput(answer_candidates={1: "A", 2: None}),
+        )
+        issues = self.review.list_issues(self.session.session_id)
+        self.review.resolve_identity(issues[0].issue_id, student_no="001")
+        self.review.resolve_answer(
+            issues[1].issue_id,
+            TeacherAction.MANUAL_SCORE,
+            manual_score=1,
+            reason="visible source evidence",
+            actor="reviewer-a",
+        )
+        decision = self.final.confirm_teacher(
+            self.session.session_id,
+            actor="chief-reviewer",
+        )
+        with self.database.connection() as connection:
+            build = ConfirmedSubmissionBuilder().build(
+                connection,
+                self.session.session_id,
+                decision.submissions,
+            )
+            draft_id = connection.execute(
+                "SELECT id FROM recognition_drafts WHERE capture_job_id = ?",
+                (result.capture_job_id,),
+            ).fetchone()[0]
+        self.assertEqual(build.blockers, ())
+        self.assertEqual(len(build.submissions), 1)
+        confirmed = build.submissions[0]
+        self.assertEqual(confirmed.job_id, result.capture_job_id)
+        self.assertEqual(confirmed.confirmed_by, "chief-reviewer")
+        self.assertEqual(confirmed.draft_snapshot["source_draft_id"], draft_id)
+        self.assertTrue(confirmed.draft_snapshot["evidence"])
+        answer_review = next(
+            item for item in confirmed.draft_snapshot["review_items"]
+            if item["issue_type"] == "ANSWER_UNREADABLE"
+        )
+        history = answer_review["review_history"][0]
+        self.assertEqual(history["reason"], "visible source evidence")
+        self.assertEqual(history["actor"], "reviewer-a")
+        self.assertEqual(history["teacher_action"], "MANUAL_SCORE")
+
+    def test_confirmed_snapshot_matches_jobs_by_id_not_submission_order(self):
+        first = self.process(
+            b"order-a",
+            MockRecognitionInput(student_no="001", answer_candidates={1: "A", 2: "B"}),
+        )
+        second = self.process(
+            b"order-b",
+            MockRecognitionInput(student_no="002", answer_candidates={1: "A", 2: "B"}),
+        )
+        decision = self.final.confirm_teacher(self.session.session_id)
+        with self.database.connection() as connection:
+            build = ConfirmedSubmissionBuilder().build(
+                connection,
+                self.session.session_id,
+                reversed(decision.submissions),
+            )
+            expected = {
+                row[0]: json.loads(row[1])["identity"]["student_id"]
+                for row in connection.execute(
+                    "SELECT capture_job_id, provisional_json FROM recognition_drafts"
+                ).fetchall()
+            }
+        self.assertEqual(build.blockers, ())
+        actual = {
+            item.job_id: item.identity["student_id"]
+            for item in build.submissions
+        }
+        self.assertEqual(actual, expected)
+        self.assertEqual(set(actual), {first.capture_job_id, second.capture_job_id})
+
+    def test_confirmed_snapshot_blocks_missing_and_duplicate_drafts(self):
+        for attack, prefix in (
+            ("missing", "confirmed_snapshot_draft_missing"),
+            ("duplicate", "confirmed_snapshot_draft_duplicate"),
+        ):
+            with self.subTest(attack=attack):
+                self.tearDown()
+                self.setUp()
+                result = self.process(
+                    attack.encode("ascii"),
+                    MockRecognitionInput(
+                        student_no="001",
+                        answer_candidates={1: "A", 2: "B"},
+                    ),
+                )
+                self.final.confirm_teacher(self.session.session_id)
+                with self.database.connection() as connection:
+                    if attack == "missing":
+                        connection.execute(
+                            "DELETE FROM recognition_drafts WHERE capture_job_id = ?",
+                            (result.capture_job_id,),
+                        )
+                    else:
+                        connection.execute(
+                            """
+                            INSERT INTO recognition_drafts
+                            SELECT ?, session_id, class_id, capture_job_id,
+                                   evidence_json, provisional_json, state,
+                                   created_at, updated_at
+                            FROM recognition_drafts WHERE capture_job_id = ?
+                            """,
+                            (uuid.uuid4().hex, result.capture_job_id),
+                        )
+                    connection.commit()
+                decision = self.final.gate.evaluate(self.session.session_id)
+                self.assertTrue(any(
+                    item.startswith(prefix) for item in decision.blockers
+                ))
+
+    def test_confirmed_snapshot_keeps_open_issue_unresolved(self):
+        self.process(
+            b"snapshot-open",
+            MockRecognitionInput(
+                student_no="001",
+                answer_candidates={1: "A", 2: None},
+            ),
+        )
+        self.final.confirm_teacher(self.session.session_id)
+        with self.database.connection() as connection:
+            decision = self.final.gate.evaluate(self.session.session_id)
+            build = ConfirmedSubmissionBuilder().build(
+                connection,
+                self.session.session_id,
+                decision.submissions,
+            )
+        self.assertEqual(
+            build.submissions[0].draft_snapshot["review_items"][0]["resolution"],
+            "unresolved",
+        )
+        self.assertTrue(build.submissions[0].draft_snapshot["blocking_errors"])
 
     def test_final_score_requires_teacher_confirmation(self):
         self.process(

@@ -39,7 +39,8 @@ class FinalScoreService:
         initialize_database(database)
 
     def confirm_teacher(self, session_id: str, actor: str = "teacher") -> GateDecision:
-        if not actor.strip():
+        actor = actor.strip()
+        if not actor:
             raise ValueError("confirmation actor is required")
         with transaction(self.database) as connection:
             session = self.sessions.get(connection, session_id)
@@ -59,6 +60,20 @@ class FinalScoreService:
                 utc_now(),
                 teacher_confirmed=True,
             )
+            now = utc_now()
+            self.storage.insert(connection, "audit_events", {
+                "id": uuid.uuid4().hex,
+                "session_id": session.session_id,
+                "class_id": session.class_id,
+                "entity_type": "exam_session",
+                "entity_id": session.session_id,
+                "action": "TEACHER_CONFIRM",
+                "actor": actor,
+                "payload_json": json.dumps({"teacher_confirmed": True}),
+                "state": "RECORDED",
+                "created_at": now,
+                "updated_at": now,
+            })
         decision = self.gate.evaluate(session_id)
         target = (
             ExamSessionState.READY_TO_FINALIZE

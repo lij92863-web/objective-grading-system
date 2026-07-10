@@ -1,5 +1,8 @@
 import tempfile
+import threading
 import unittest
+import urllib.request
+from http.server import ThreadingHTTPServer
 from pathlib import Path
 
 from app.web_product import ProductWebController, UploadedFile
@@ -116,6 +119,28 @@ class WebProductWorkflowTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("普通 USB 数据线", template)
         self.assertIn("浏览器", template)
+
+    def test_actual_local_http_server_serves_product_home(self):
+        import web_app
+
+        previous = web_app._PRODUCT_CONTROLLER
+        web_app._PRODUCT_CONTROLLER = self.web
+        server = ThreadingHTTPServer(("127.0.0.1", 0), web_app.WebHandler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with urllib.request.urlopen(
+                f"http://127.0.0.1:{server.server_port}/",
+                timeout=5,
+            ) as response:
+                body = response.read().decode("utf-8")
+            self.assertIn("老师工作台", body)
+            self.assertIn("班级管理", body)
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=5)
+            web_app._PRODUCT_CONTROLLER = previous
 
 
 if __name__ == "__main__":

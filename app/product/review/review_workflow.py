@@ -9,6 +9,8 @@ from app.storage.local_db import LocalDatabase
 from app.storage.migrations import initialize_database, utc_now
 from app.storage.repositories import ProductRepository
 from app.storage.transaction import transaction
+from app.infrastructure.loaders.csv_loaders import load_answer_key
+from app.product.scoring.manual_score_policy import ManualScorePolicy
 
 from .manual_resolution import TeacherAction
 from .review_presenter import PresentedReviewIssue, present_issue, review_sort_key
@@ -87,7 +89,7 @@ class ReviewWorkflow:
         issue_id: str,
         action: TeacherAction,
         *,
-        manual_score: float | None = None,
+        manual_score: object = None,
         reason: str,
         actor: str = "teacher",
     ) -> None:
@@ -101,15 +103,17 @@ class ReviewWorkflow:
             raise ValueError("unsupported answer resolution")
         if not reason.strip():
             raise ValueError("resolution reason is required")
-        if action is TeacherAction.MANUAL_SCORE:
-            if manual_score is None or manual_score < 0:
-                raise ValueError("manual score must be zero or greater")
-        elif manual_score is not None:
-            raise ValueError("manual score is only valid for MANUAL_SCORE")
         with transaction(self.database) as connection:
             issue = self._open_issue(connection, issue_id)
             if issue["issue_type"].startswith("IDENTITY_"):
                 raise ValueError("identity issue needs identity resolution")
+            answer_key = self._answer_key(connection, issue["session_id"])
+            validated_score = ManualScorePolicy.validate(
+                answer_key,
+                issue["question_number"],
+                action,
+                manual_score,
+            )
             state = (
                 ReviewIssueState.WAIVED
                 if action in {TeacherAction.WAIVE, TeacherAction.EXCLUDE}
@@ -119,7 +123,7 @@ class ReviewWorkflow:
                 connection,
                 issue,
                 action,
-                manual_score,
+                validated_score,
                 reason.strip(),
                 actor,
                 state,
@@ -317,3 +321,18 @@ class ReviewWorkflow:
         if issue["state"] not in {"OPEN", "IN_PROGRESS", "BLOCKED"}:
             raise ValueError("review issue is already closed")
         return issue
+
+    def _answer_key(self, connection: sqlite3.Connection, session_id: str):
+        row = self.storage.one(
+            connection,
+            """
+            SELECT a.stored_path
+            FROM exam_sessions s
+            JOIN exam_assets a ON a.id = s.answer_key_asset_id
+            WHERE s.session_id = ? AND a.state = 'VALID'
+            """,
+            (session_id,),
+        )
+        if row is None:
+            raise ValueError("canonical answer key is unavailable")
+        return load_answer_key(row["stored_path"])

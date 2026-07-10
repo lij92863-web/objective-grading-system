@@ -115,7 +115,7 @@ class ProductFacade:
         self.review.resolve_answer(
             issue_id,
             action,
-            manual_score=float(manual) if manual else None,
+            manual_score=manual if manual else None,
             reason=values.get("reason", ""),
         )
 

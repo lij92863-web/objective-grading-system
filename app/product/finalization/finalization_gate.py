@@ -12,6 +12,10 @@ from app.student_recognition.grading_bridge.grading_gate import (
     ExamOfficialReportGate,
     TeacherConfirmedSubmission,
 )
+from app.product.scoring.manual_score_policy import (
+    ManualScorePolicy,
+    ManualScoreValidationError,
+)
 
 
 class FinalizationGateState(str, Enum):
@@ -110,6 +114,14 @@ class FinalizationGate:
             ]
             blockers.extend(f"duplicate_student:{item}" for item in duplicates)
             answer_key = self._answer_key(connection, session["answer_key_asset_id"])
+            if answer_key is not None:
+                blockers.extend(
+                    self._manual_override_blockers(
+                        connection,
+                        session_id,
+                        answer_key,
+                    )
+                )
 
         if answer_key is None:
             blockers.append("answer_key_missing")
@@ -171,3 +183,46 @@ class FinalizationGate:
             (asset_id,),
         )
         return load_answer_key(Path(row["stored_path"])) if row else None
+
+    def _manual_override_blockers(
+        self,
+        connection,
+        session_id: str,
+        answer_key: AnswerKey,
+    ) -> list[str]:
+        rows = self.storage.all(
+            connection,
+            """
+            SELECT r.session_id AS resolution_session_id,
+                   r.teacher_action, r.manual_score,
+                   i.session_id AS issue_session_id,
+                   i.capture_job_id, i.question_number,
+                   j.session_id AS job_session_id
+            FROM review_resolutions r
+            JOIN review_issues i ON i.id = r.issue_id
+            LEFT JOIN capture_jobs j ON j.id = i.capture_job_id
+            WHERE i.session_id = ?
+            """,
+            (session_id,),
+        )
+        blockers = []
+        for row in rows:
+            job_id = row["capture_job_id"] or "missing"
+            number = row["question_number"]
+            suffix = f"{job_id}:{number if number is not None else 'missing'}"
+            if row["resolution_session_id"] != session_id:
+                blockers.append(f"manual_score_session_mismatch:{suffix}")
+                continue
+            if row["issue_session_id"] != session_id or row["job_session_id"] != session_id:
+                blockers.append(f"manual_score_capture_mismatch:{suffix}")
+                continue
+            try:
+                ManualScorePolicy.validate(
+                    answer_key,
+                    number,
+                    row["teacher_action"],
+                    row["manual_score"],
+                )
+            except ManualScoreValidationError as exc:
+                blockers.append(f"{exc.code}:{suffix}")
+        return blockers

@@ -99,6 +99,22 @@ class ReviewWorkflowTests(unittest.TestCase):
             reason="教师确认错误",
         )
 
+    def test_review_rejects_score_above_canonical_question_max(self):
+        issue = self.review.list_issues(self.session.session_id)[1]
+        with self.assertRaises(ValueError):
+            self.review.resolve_answer(
+                issue.issue_id,
+                TeacherAction.MANUAL_SCORE,
+                manual_score=20,
+                reason="attack",
+            )
+        with self.database.connection() as connection:
+            count = connection.execute(
+                "SELECT COUNT(*) FROM review_resolutions WHERE issue_id = ?",
+                (issue.issue_id,),
+            ).fetchone()[0]
+        self.assertEqual(count, 0)
+
     def test_review_resolution_preserves_original_evidence_and_audits(self):
         issue = self.review.list_issues(self.session.session_id)[1]
         with self.database.connection() as connection:

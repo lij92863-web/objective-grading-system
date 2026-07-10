@@ -17,6 +17,8 @@ from app.storage.transaction import transaction
 from .final_score_exporter import write_final_scores
 from .finalization_audit import write_finalization_audit
 from .finalization_gate import FinalizationGate, FinalizationGateState, GateDecision
+from app.product.scoring.final_score_policy import validate_final_score
+from app.product.scoring.manual_score_policy import ManualScorePolicy
 
 
 @dataclasses.dataclass(frozen=True)
@@ -140,14 +142,17 @@ class FinalScoreService:
         for submission in decision.submissions:
             result = grade_submission(decision.answer_key, submission)
             draft = draft_by_student[submission.student_id]
-            overrides = self._manual_overrides(str(draft["capture_job_id"]))
+            overrides = self._manual_overrides(
+                str(draft["capture_job_id"]),
+                decision.answer_key,
+            )
             score = result.score
             for number, manual_score in overrides.items():
                 detail = next(item for item in result.details if item.number == number)
                 score += manual_score - detail.score
             score = round(score, 6)
             identity = draft["provisional"]["identity"]
-            rows.append({
+            row = {
                 "student_no": identity["student_no"],
                 "student_name": identity["name"],
                 "score": score,
@@ -156,7 +161,9 @@ class FinalScoreService:
                 "status": "FINAL",
                 "unresolved_count": 0,
                 "manual_review_count": len(overrides),
-            })
+            }
+            validate_final_score(row)
+            rows.append(row)
             submissions.append({
                 "student_id": submission.student_id,
                 "answers": {
@@ -166,7 +173,7 @@ class FinalScoreService:
             })
         return rows, submissions
 
-    def _manual_overrides(self, capture_job_id: str) -> dict[int, float]:
+    def _manual_overrides(self, capture_job_id: str, answer_key) -> dict[int, float]:
         with self.database.connection() as connection:
             rows = self.storage.all(
                 connection,
@@ -180,11 +187,13 @@ class FinalScoreService:
             )
         overrides = {}
         for row in rows:
-            overrides[row["question_number"]] = (
-                float(row["manual_score"])
-                if row["teacher_action"] == "MANUAL_SCORE"
-                else 0.0
+            validated = ManualScorePolicy.validate(
+                answer_key,
+                row["question_number"],
+                row["teacher_action"],
+                row["manual_score"],
             )
+            overrides[row["question_number"]] = validated or 0.0
         return overrides
 
     def _persist_final_records(
@@ -196,6 +205,7 @@ class FinalScoreService:
     ) -> None:
         now = utc_now()
         for row, submission in zip(rows, submissions):
+            validate_final_score(row)
             self.storage.insert(connection, "final_submissions", {
                 "id": uuid.uuid4().hex,
                 "session_id": session.session_id,

@@ -2,6 +2,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from app.capture import CaptureQueue, CaptureSourceType
 from app.classes import ClassService
@@ -12,6 +13,7 @@ from app.product.review.manual_resolution import TeacherAction
 from app.product.review.review_workflow import ReviewWorkflow
 from app.roster.roster_importer import RosterImporter
 from app.storage import LocalDatabase
+from app.product.scoring.final_score_policy import FinalScoreInvariantError
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -123,6 +125,136 @@ class FinalizationGateTests(unittest.TestCase):
             "teacher_confirmation_missing",
             self.final.gate.evaluate(self.session.session_id).blockers,
         )
+
+    def prepare_ready_manual_score(self):
+        self.process(
+            b"manual-ready",
+            MockRecognitionInput(answer_candidates={1: "A", 2: None}),
+        )
+        issues = self.review.list_issues(self.session.session_id)
+        self.review.resolve_identity(issues[0].issue_id, student_no="001")
+        self.review.resolve_answer(
+            issues[1].issue_id,
+            TeacherAction.MANUAL_SCORE,
+            manual_score=1,
+            reason="teacher reviewed source",
+        )
+        self.final.confirm_teacher(self.session.session_id)
+
+    def test_finalization_rejects_corrupted_manual_override_atomically(self):
+        self.prepare_ready_manual_score()
+        with self.database.connection() as connection:
+            connection.execute(
+                "UPDATE review_resolutions SET manual_score = 20"
+            )
+            connection.commit()
+        decision = self.final.gate.evaluate(self.session.session_id)
+        self.assertTrue(any(
+            blocker.startswith("manual_score_above_question_max")
+            for blocker in decision.blockers
+        ))
+        with self.assertRaises(ValueError):
+            self.final.finalize(self.session.session_id)
+        self.assert_no_formal_publication()
+
+    def test_publication_failure_rolls_back_database_and_files(self):
+        self.prepare_ready_manual_score()
+        with mock.patch.object(
+            self.final,
+            "_record_artifact",
+            side_effect=RuntimeError("publish attack"),
+        ):
+            with self.assertRaises(RuntimeError):
+                self.final.finalize(self.session.session_id)
+        self.assert_no_formal_publication()
+
+    def test_finalization_rejects_non_finite_database_override(self):
+        self.prepare_ready_manual_score()
+        with self.database.connection() as connection:
+            connection.execute(
+                "UPDATE review_resolutions SET manual_score = ?",
+                (float("inf"),),
+            )
+            connection.commit()
+        decision = self.final.gate.evaluate(self.session.session_id)
+        self.assertTrue(any(
+            blocker.startswith("manual_score_non_finite")
+            for blocker in decision.blockers
+        ))
+
+    def test_finalization_rejects_override_action_and_question_mismatch(self):
+        for sql, prefix in (
+            (
+                "UPDATE review_resolutions SET teacher_action = 'MARK_WRONG', manual_score = 1",
+                "manual_score_action_mismatch",
+            ),
+            (
+                "UPDATE review_issues SET question_number = 99 WHERE question_number IS NOT NULL",
+                "manual_score_question_missing",
+            ),
+        ):
+            with self.subTest(prefix=prefix):
+                self.tearDown()
+                self.setUp()
+                self.prepare_ready_manual_score()
+                with self.database.connection() as connection:
+                    connection.execute(sql)
+                    connection.commit()
+                decision = self.final.gate.evaluate(self.session.session_id)
+                self.assertTrue(any(
+                    blocker.startswith(prefix)
+                    for blocker in decision.blockers
+                ))
+
+    def test_publication_layer_rejects_invalid_final_score_row(self):
+        self.prepare_ready_manual_score()
+        with self.database.connection() as connection:
+            student_id = connection.execute(
+                "SELECT id FROM students WHERE student_no = '001'"
+            ).fetchone()[0]
+        invalid_rows = [{
+            "student_no": "001",
+            "student_name": "张三",
+            "score": 20,
+            "max_score": 2,
+            "percent": 1000,
+            "status": "FINAL",
+            "unresolved_count": 0,
+            "manual_review_count": 1,
+        }]
+        submissions = [{"student_id": student_id, "answers": {}}]
+        with mock.patch.object(
+            self.final,
+            "_build_scores",
+            return_value=(invalid_rows, submissions),
+        ):
+            with self.assertRaises(FinalScoreInvariantError):
+                self.final.finalize(self.session.session_id)
+        self.assert_no_formal_publication()
+
+    def assert_no_formal_publication(self):
+        with self.database.connection() as connection:
+            session_state = connection.execute(
+                "SELECT state FROM exam_sessions WHERE session_id = ?",
+                (self.session.session_id,),
+            ).fetchone()[0]
+            counts = [
+                connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+                for table in ("final_scores", "final_submissions", "artifact_index")
+            ]
+            evidence_count = connection.execute(
+                "SELECT COUNT(*) FROM recognition_drafts"
+            ).fetchone()[0]
+            resolution_count = connection.execute(
+                "SELECT COUNT(*) FROM review_resolutions"
+            ).fetchone()[0]
+        self.assertNotEqual(session_state, "FINALIZED")
+        self.assertEqual(counts, [0, 0, 0])
+        self.assertGreater(evidence_count, 0)
+        self.assertGreater(resolution_count, 0)
+        output = self.root / "exports" / self.session.session_id
+        self.assertFalse((output / "final_scores.csv").exists())
+        self.assertFalse((output / "final_scores.json").exists())
 
 
 if __name__ == "__main__":

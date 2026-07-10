@@ -139,3 +139,19 @@ class ExamOfficialReportGate:
     def refuse_raw_draft(self, draft: RecognitionDraft) -> GateResult:
         # Explicit guard: a RecognitionDraft can never be the input to official grading.
         return GateResult(False, ErrorCode.GRADING_DRAFT_NOT_CONFIRMED)
+
+
+class GradingGate:
+    """Strict bridge accepting confirmed submissions only."""
+    def try_build(self, submission: TeacherConfirmedSubmission) -> GateResult:
+        if not isinstance(submission, TeacherConfirmedSubmission):
+            return GateResult(False, ErrorCode.GRADING_DRAFT_NOT_CONFIRMED)
+        identity = submission.identity or {}
+        if not identity.get("student_id"):
+            return GateResult(False, ErrorCode.GRADING_IDENTITY_NOT_CONFIRMED)
+        snapshot = submission.draft_snapshot or {}
+        if snapshot.get("blocking_errors"):
+            return GateResult(False, ErrorCode.GRADING_BLOCKING_ERRORS_EXIST)
+        if any(item.get("resolution") != "resolved" for item in snapshot.get("review_items", [])):
+            return GateResult(False, ErrorCode.GRADING_UNRESOLVED_REVIEW_ITEMS)
+        return GateResult(True, None, submission)

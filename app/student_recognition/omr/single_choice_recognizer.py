@@ -20,10 +20,19 @@ def recognize_single_choice(
             question_no, (), "needs_review",
             (ErrorCode.OMR_MULTI_MARK_SINGLE_CHOICE,), tuple(evidence),
         )
-    if any(metric.classification in _REVIEW_CLASSIFICATIONS for metric in metrics):
+    classifications = {metric.classification for metric in metrics}
+    if classifications & set(_REVIEW_CLASSIFICATIONS):
+        if "weak" in classifications:
+            reason = ErrorCode.OMR_WEAK_MARK
+        elif "erased" in classifications:
+            reason = ErrorCode.OMR_ERASURE_DETECTED
+        elif "dirty" in classifications:
+            reason = ErrorCode.OMR_BORDER_NOISE_HIGH
+        else:
+            reason = ErrorCode.OMR_LOW_CONFIDENCE
         return RecognizedAnswerCandidate(
             question_no, (), "needs_review",
-            (ErrorCode.OMR_LOW_CONFIDENCE,), tuple(evidence),
+            (reason,), tuple(evidence),
         )
 
     ranked = sorted(metrics, key=lambda metric: metric.mark_score, reverse=True)

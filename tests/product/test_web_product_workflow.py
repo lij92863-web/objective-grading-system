@@ -1,7 +1,7 @@
 import tempfile
 import threading
 import unittest
-import urllib.request
+import socket
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 
@@ -129,11 +129,20 @@ class WebProductWorkflowTests(unittest.TestCase):
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
         try:
-            with urllib.request.urlopen(
-                f"http://127.0.0.1:{server.server_port}/",
+            with socket.create_connection(
+                ("127.0.0.1", server.server_port),
                 timeout=5,
-            ) as response:
-                body = response.read().decode("utf-8")
+            ) as connection:
+                connection.sendall(
+                    b"GET / HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n"
+                )
+                chunks = []
+                while True:
+                    chunk = connection.recv(65536)
+                    if not chunk:
+                        break
+                    chunks.append(chunk)
+            body = b"".join(chunks).split(b"\r\n\r\n", 1)[1].decode("utf-8")
             self.assertIn("老师工作台", body)
             self.assertIn("班级管理", body)
         finally:

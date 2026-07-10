@@ -1,0 +1,12 @@
+:root { color-scheme: light; font-family: system-ui, "Microsoft YaHei", sans-serif; }
+body { margin: 0; color: #172033; background: #f3f6fb; }
+header, main { max-width: 1040px; margin: auto; padding: 20px; }
+header { display: flex; gap: 18px; align-items: center; }
+header a { color: #3155a6; text-decoration: none; }
+section, article { background: white; border: 1px solid #dfe6f2; border-radius: 12px; padding: 20px; margin: 14px 0; }
+form { display: grid; gap: 12px; max-width: 720px; }
+input, select, button { font: inherit; padding: 10px; border: 1px solid #b8c5da; border-radius: 8px; }
+button, .button { background: #3155a6; color: white; border: 0; cursor: pointer; padding: 10px 14px; border-radius: 8px; text-decoration: none; display: inline-block; }
+table { width: 100%; border-collapse: collapse; } th, td { text-align: left; padding: 10px; border-bottom: 1px solid #e5eaf2; }
+.warning { background: #fff8e8; border-color: #e6c66d; }
+video { width: min(100%, 640px); background: #111; border-radius: 10px; }

@@ -28,11 +28,22 @@ EXAMS_ROOT = DATA_ROOT / "exams"
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-import objective_grader
 import roster_manager
+from app.application.product_preview_adapter import build_preview_data
 from app.data_io import draft_to_review_rows, parse_answer_source, review_rows_to_answer_key_csv
 from app.validators import has_blocking_errors
 from app.workflow import make_run_id, run_grading, safe_slug
+from app.web_product import ProductWebController, UploadedFile
+
+
+_PRODUCT_CONTROLLER: Optional[ProductWebController] = None
+
+
+def product_controller() -> ProductWebController:
+    global _PRODUCT_CONTROLLER
+    if _PRODUCT_CONTROLLER is None:
+        _PRODUCT_CONTROLLER = ProductWebController(DATA_ROOT / "local_app")
+    return _PRODUCT_CONTROLLER
 
 
 def json_bytes(data: object) -> bytes:
@@ -153,19 +164,19 @@ def preview_session(session_dir: Path) -> Dict[str, object]:
     submissions_path = session_dir / str(metadata["submissions"])
     question_bank_name = str(metadata.get("question_bank") or "")
     question_bank_path = session_dir / question_bank_name if question_bank_name else None
-    answer_key = objective_grader.load_answer_key(answer_key_path)
-    submissions = objective_grader.load_submissions(submissions_path, answer_key)
-    results = objective_grader.grade_all(answer_key, submissions)
-    profiles = objective_grader.build_knowledge_profiles(answer_key, results)
-    question_bank = objective_grader.load_question_bank(question_bank_path) if question_bank_path and question_bank_path.exists() else None
-    validation_rows = objective_grader.build_validation_report(answer_key, submissions, results, profiles, question_bank)
+    core_preview = build_preview_data(
+        answer_key_path,
+        submissions_path,
+        question_bank_path,
+    )
+    validation_rows = list(core_preview["validation_rows"])
     unmatched = build_unmatched_for_plain_submissions(str(metadata.get("class_name", "")), submissions_path)
     for row in unmatched:
         validation_rows.append({"severity": "warning", "scope": "student_match", "item": row["recognized_student_id"], "message": row["message"]})
     return {
         "session_id": session_dir.name,
-        "question_count": len(answer_key.questions),
-        "student_count": len(submissions),
+        "question_count": core_preview["question_count"],
+        "student_count": core_preview["student_count"],
         "preview_rows": read_csv_rows(submissions_path, limit=5),
         "validation_rows": validation_rows,
         "blocking": has_blocking_errors(validation_rows),
@@ -230,6 +241,28 @@ class WebHandler(BaseHTTPRequestHandler):
     def send_error_json(self, message: str, status: int = 400) -> None:
         self.send_json({"ok": False, "message": message}, status)
 
+    def send_product_response(self, response) -> None:
+        self.send_response(response.status)
+        self.send_header("Content-Type", response.content_type)
+        for name, value in response.headers.items():
+            self.send_header(name, value)
+        self.send_header("Content-Length", str(len(response.body)))
+        self.end_headers()
+        self.wfile.write(response.body)
+
+    @staticmethod
+    def product_form(form: FormData):
+        fields = {}
+        files = {}
+        for name, item in form.items():
+            if isinstance(item, list):
+                item = item[0] if item else FormField()
+            if item.filename:
+                files[name] = UploadedFile(item.filename, item.content)
+            else:
+                fields[name] = item.value.strip()
+        return fields, files
+
     def parse_form(self) -> FormData:
         content_type = self.headers.get("Content-Type", "")
         length = int(self.headers.get("Content-Length", "0"))
@@ -271,6 +304,9 @@ class WebHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
         try:
+            product_response = product_controller().get(parsed.path)
+            if product_response is not None:
+                return self.send_product_response(product_response)
             if parsed.path == "/":
                 return self.serve_static(WEB_ROOT / "index.html")
             if parsed.path.startswith("/static/"):
@@ -301,6 +337,15 @@ class WebHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         parsed = urlparse(self.path)
         try:
+            if product_controller().handles(parsed.path):
+                fields, files = self.product_form(self.parse_form())
+                product_response = product_controller().post(
+                    parsed.path,
+                    fields,
+                    files,
+                )
+                if product_response is not None:
+                    return self.send_product_response(product_response)
             if parsed.path == "/api/classes/import":
                 return self.handle_import_class()
             if parsed.path == "/api/exams/preview":

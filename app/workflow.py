@@ -5,6 +5,7 @@ import json
 import shutil
 import statistics
 import tempfile
+import warnings
 from collections import Counter, defaultdict
 from datetime import date, datetime
 from pathlib import Path
@@ -13,6 +14,11 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from app.validators import has_blocking_errors
 from app.domain.grading import grade_all
+from app.domain.grading import PrecheckIssue, precheck_to_validation_rows
+from app.application.grading import (
+    ArchivePolicy, ExamMetadata, GradingRunRequest, GradingRunStatus,
+    ReportPolicy, ValidationPolicy, run_grading_orchestrator,
+)
 from app.application.contracts.exam_metadata import ExamMeta
 from app.infrastructure.loaders.question_bank_loader import load_question_bank
 from app.infrastructure.exporters.html_helpers import html_escape, safe_slug as _safe_slug
@@ -462,9 +468,58 @@ def run_grading(
     exam_date = exam_date or date.today().isoformat()
     run_id = run_id or make_run_id()
 
-    answer_key = load_answer_key(answer_key_path)
-    submissions = load_submissions(submissions_path, answer_key)
-    results = grade_all(answer_key, submissions)
+    if allow_errors:
+        warnings.warn(
+            "allow_errors is deprecated and cannot bypass blocking precheck issues",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+    request = GradingRunRequest(
+        answer_key_path=answer_key_path,
+        submissions_path=submissions_path,
+        output_dir=out_dir,
+        question_bank_path=question_bank_path,
+        exam_metadata=ExamMetadata(exam_name, class_name, subject, exam_date),
+        report_policy=ReportPolicy(weak_threshold, practice_per_tag),
+        archive_policy=ArchivePolicy(archive_root, not no_archive),
+        validation_policy=ValidationPolicy(external_issues=tuple(
+            PrecheckIssue(
+                str(row.get("severity", "warning")),
+                str(row.get("scope", "external_validation")),
+                str(row.get("item", "-")),
+                str(row.get("message", "external validation issue")),
+                str(row.get("code", "legacy_external_blocker")),
+            )
+            for row in (extra_validation_rows or [])
+        )),
+        run_id=run_id,
+        source_files=source_files or {},
+    )
+    core_result = run_grading_orchestrator(request)
+    answer_key = core_result.answer_key
+    submissions = list(core_result.submissions)
+    results = list(core_result.student_results)
+    validation_rows = precheck_to_validation_rows(core_result.precheck)
+    temp_parent = out_dir.parent if out_dir.parent.exists() else PROJECT_ROOT
+    temp_dir_path = Path(tempfile.mkdtemp(prefix=f".{out_dir.name}_", dir=str(temp_parent)))
+    if core_result.status is GradingRunStatus.BLOCKED:
+        try:
+            ValidationReportCsvExporter().export(
+                ExportRequest(output_dir=temp_dir_path), validation_rows
+            )
+            write_error_report(temp_dir_path / "error_report.html", validation_rows)
+            replace_report_outputs(temp_dir_path, out_dir)
+            return {
+                "ok": False, "blocked": True,
+                "message": "Precheck blocked grading; only validation/error artifacts were generated.",
+                "out_dir": str(out_dir),
+                "validation_report": str(out_dir / "validation_report.csv"),
+                "error_report": str(out_dir / "error_report.html"),
+                "run_id": run_id, "stats": None,
+            }
+        finally:
+            shutil.rmtree(temp_dir_path, ignore_errors=True)
+
     meta = ExamMeta(exam_name=exam_name, class_name=class_name, subject=subject, exam_date=exam_date)
     profile_rows = build_knowledge_profiles(
         [_legacy_spec_to_dict(spec) for spec in answer_key.questions],
@@ -473,39 +528,26 @@ def run_grading(
     )
     profiles = [profile_row_to_object(row) for row in profile_rows]
     question_bank = load_question_bank(question_bank_path) if question_bank_path else None
-    validation_rows = build_validation_report(
+    postgrade_rows = build_validation_report(
         answer_key_to_validation_dict(answer_key),
         [_legacy_sub_to_dict(submission) for submission in submissions],
         [_legacy_result_to_dict(result) for result in results],
         profile_rows,
         [_legacy_bank_to_dict(question) for question in question_bank] if question_bank else None,
     )
-    validation_rows.extend(extra_validation_rows or [])
+    validation_rows = [row for row in validation_rows if row.get("severity") != "ok"]
+    validation_rows.extend(row for row in postgrade_rows if row.get("severity") != "ok")
+    if not validation_rows:
+        validation_rows = precheck_to_validation_rows(core_result.precheck)
 
     stats = basic_stats(results)
-    blocked = has_blocking_errors(validation_rows)
-    temp_parent = out_dir.parent if out_dir.parent.exists() else PROJECT_ROOT
-    temp_dir_path = Path(tempfile.mkdtemp(prefix=f".{out_dir.name}_", dir=str(temp_parent)))
+    blocked = False
     archived_dir = None
     try:
         validation_path = temp_dir_path / "validation_report.csv"
         ValidationReportCsvExporter().export(
             ExportRequest(output_dir=temp_dir_path), validation_rows
         )
-        if blocked and not allow_errors:
-            write_error_report(temp_dir_path / "error_report.html", validation_rows)
-            replace_report_outputs(temp_dir_path, out_dir)
-            return {
-                "ok": False,
-                "blocked": True,
-                "message": "发现会影响成绩准确性的错误，已生成错误报告。",
-                "out_dir": str(out_dir),
-                "validation_report": str(out_dir / "validation_report.csv"),
-                "error_report": str(out_dir / "error_report.html"),
-                "run_id": run_id,
-                "stats": stats,
-            }
-
         summary_path = temp_dir_path / "summary.csv"
         detail_path = temp_dir_path / "detail.csv"
         item_analysis_path = temp_dir_path / "item_analysis.csv"

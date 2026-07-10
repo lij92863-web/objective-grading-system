@@ -8,7 +8,7 @@ from .answer_draft import (
     draft_to_submission,
     mark_low_confidence,
 )
-from .models import AnswerKey, QuestionResult, QuestionSpec, SingleQuestionScore, StudentResult, Submission
+from .models import AnswerKey, DuplicateQuestionIssue, QuestionResult, QuestionSpec, QuestionType, SingleQuestionScore, StudentResult, Submission
 from .normalize import (
     allowed_options,
     format_answer,
@@ -19,7 +19,7 @@ from .normalize import (
     normalize_answer,
     normalize_text_answer,
 )
-from .precheck import PrecheckIssue, PrecheckReport, run_grading_precheck
+from .precheck import PrecheckIssue, PrecheckReport, precheck_to_validation_rows, run_grading_precheck
 from .scoring import grade_all, grade_submission, score_answer, score_answer_detail
 from .choice_scoring import score_choice_answer
 
@@ -28,10 +28,12 @@ __all__ = [
     "AnswerKey",
     "DraftAnswerItem",
     "DraftStatus",
+    "DuplicateQuestionIssue",
     "PrecheckIssue",
     "PrecheckReport",
     "QuestionResult",
     "QuestionSpec",
+    "QuestionType",
     "SingleQuestionScore",
     "StudentResult",
     "Submission",
@@ -48,6 +50,7 @@ __all__ = [
     "matches_text_answer",
     "normalize_answer",
     "normalize_text_answer",
+    "precheck_to_validation_rows",
     "run_grading_precheck",
     "score_answer",
     "score_answer_detail",

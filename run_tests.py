@@ -106,8 +106,11 @@ class FileWorkflowTests(unittest.TestCase):
             write_text(key, "question,answer,points\n1,A,1\n")
             write_text(submissions, "student_id,name,Q1\n")
             result = run_grading(key, submissions, out_dir, no_archive=True, allow_errors=True)
-            self.assertTrue(result["ok"])
-            self.assertTrue((out_dir / "summary.csv").exists())
+            self.assertFalse(result["ok"])
+            self.assertTrue(result["blocked"])
+            self.assertTrue((out_dir / "validation_report.csv").exists())
+            self.assertTrue((out_dir / "error_report.html").exists())
+            self.assertFalse((out_dir / "summary.csv").exists())
 
     def test_roster_import(self):
         with tempfile.TemporaryDirectory() as tmp:

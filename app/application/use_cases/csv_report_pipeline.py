@@ -63,11 +63,16 @@ def _legacy_result_to_dict(r) -> dict:
         correct_count=r.correct_count,
         wrong_or_partial_count=r.wrong_or_partial_count,
         blank_count=r.blank_count, invalid_count=r.invalid_count,
-        details=[dict(number=d.number, status=d.status, score=d.score,
-                      max_score=d.max_score,
-                      actual="".join(sorted(d.actual)),
-                      normalized_answer="".join(sorted(d.actual)))
-                 for d in r.details],
+          details=[dict(number=d.number, status=d.status, score=d.score,
+                        max_score=d.max_score,
+                        actual=d.actual,
+                        raw_actual=d.raw_actual,
+                        student_answer=d.student_answer,
+                        normalized_answer=d.normalized_answer,
+                        correct_answer=d.correct_answer,
+                        reason=d.reason,
+                        needs_review=d.needs_review)
+                   for d in r.details],
     )
 
 

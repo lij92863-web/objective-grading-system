@@ -35,12 +35,12 @@ class GradingPrecheckTests(unittest.TestCase):
         self.assertFalse(report.can_grade)
         self.assertEqual(report.review_required[0].scope, "draft_answer")
 
-    def test_duplicate_students_are_warning_not_blocker(self):
+    def test_duplicate_students_are_non_overridable_blocker(self):
         key = AnswerKey((QuestionSpec(number=1, answers=frozenset({"A"})),))
         submission = Submission("S1", "Student One", {1: normalize_answer("A")}, {1: "A"}, (), 2)
         report = run_grading_precheck(students=["S1", "S1"], answer_key=key, submissions=[submission])
-        self.assertTrue(report.can_grade)
-        self.assertTrue(any(issue.scope == "students" for issue in report.warnings))
+        self.assertFalse(report.can_grade)
+        self.assertTrue(any(issue.code == "duplicate_student_identity" for issue in report.blocking))
 
 
 if __name__ == "__main__":

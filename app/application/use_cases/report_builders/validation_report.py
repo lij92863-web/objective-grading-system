@@ -9,13 +9,6 @@ def build_validation_report(answer_key: dict, submissions: list, results: list, 
     bank_ids = {q.get("question_id", "") for q in question_bank}
     bank_tags = {t for q in question_bank for t in (q.get("tags", []) or [])}
 
-    # Duplicate student_id
-    student_counts = Counter(s.get("student_id", "") for s in submissions)
-    for sid, cnt in sorted(student_counts.items()):
-        if cnt > 1:
-            rows.append(dict(severity="warning", scope="submission", item=sid,
-                            message=f"duplicate student_id appears {cnt} times"))
-
     by_number = answer_key.get("by_number", {})
     answer_key_numbers = set(by_number)
 
@@ -33,21 +26,13 @@ def build_validation_report(answer_key: dict, submissions: list, results: list, 
         rows.append(dict(severity="info", scope="submission", item=f"Q{number}",
                         message="answer_key.csv contains a question that no submission answered"))
 
-    # Duplicate questions
-    for number in answer_key.get("duplicate_questions", []):
-        rows.append(dict(severity="error", scope="answer_key", item=f"Q{number}",
-                        message="duplicate question number in answer_key.csv; later duplicate row was ignored"))
-
-    # Invalid status, zero points, cancelled
-    QUESTION_STATUSES = {"normal", "cancelled", "bonus_all", "bonus_if_answered", "manual_review"}
+    # Post-grade consistency/display observations only. Input blocking rules are
+    # owned exclusively by ``run_grading_precheck``.
     questions = answer_key.get("questions", [])
     for spec in questions:
         qnum = spec.get("question", spec.get("number", 0))
         status = spec.get("status", "normal")
         points = spec.get("points", 0)
-        if status not in QUESTION_STATUSES:
-            rows.append(dict(severity="error", scope="answer_key", item=f"Q{qnum}",
-                            message=f"invalid status {status}"))
         if points <= 0:
             rows.append(dict(severity="warning", scope="answer_key", item=f"Q{qnum}",
                             message="question points should be positive"))

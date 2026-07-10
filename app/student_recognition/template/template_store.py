@@ -30,9 +30,8 @@ logger = logging.getLogger(__name__)
 # parents[3] == project root.
 DEFAULT_TEMPLATES_DIR = (
     Path(__file__).resolve().parents[3]
-    / "tests"
+    / "data"
     / "student_recognition"
-    / "fixtures"
     / "templates"
 )
 

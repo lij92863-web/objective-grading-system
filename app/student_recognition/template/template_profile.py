@@ -98,6 +98,8 @@ def valid_coordinate_system(coord: Any) -> bool:
         coord.get("type") == "normalized"
         and coord.get("origin") == "top_left"
         and coord.get("unit") == "ratio"
+        and coord.get("x_range") == [0.0, 1.0]
+        and coord.get("y_range") == [0.0, 1.0]
     )
 
 
@@ -368,13 +370,13 @@ class TemplateProfile:
         page = self.get_page(page_no)
         if page is None:
             return []
-        return list(page.get("anchors", []) or [])
+        return copy.deepcopy(page.get("anchors", []) or [])
 
     def get_page(self, page_no: int) -> Optional[Dict[str, Any]]:
         """Return the page descriptor with the given *page_no*, or None."""
         for page in self.pages:
             if page.get("page_no") == page_no:
-                return page
+                return copy.deepcopy(page)
         return None
 
     def question_count(self) -> int:

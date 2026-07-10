@@ -15,7 +15,7 @@ Two anchor modes are supported:
 
 from typing import Any, Dict, List, Optional, Tuple
 
-from app.student_recognition.template.coordinates import clamp_norm, is_finite_number
+from app.student_recognition.template.coordinates import is_finite_number
 from app.student_recognition.template.template_profile import OptionCell
 
 __all__ = [
@@ -85,19 +85,6 @@ def _bilinear(corners: Dict[str, Dict[str, float]], u: float, v: float) -> "tupl
     return (x, y)
 
 
-def _clamp_roi(roi: Dict[str, float]) -> Dict[str, float]:
-    """Clamp a roi so it stays within the normalized [0, 1] box."""
-    x = clamp_norm(roi["x"])
-    y = clamp_norm(roi["y"])
-    w = float(roi["w"])
-    h = float(roi["h"])
-    if x + w > 1.0:
-        w = max(0.0, 1.0 - x)
-    if y + h > 1.0:
-        h = max(0.0, 1.0 - y)
-    return {"x": x, "y": y, "w": w, "h": h}
-
-
 def expand_block(
     block: Dict[str, Any],
     anchors: Dict[str, Dict[str, Any]],
@@ -161,14 +148,12 @@ def expand_block(
                     OptionCell(
                         question_no=q_no,
                         option_label=label,
-                        roi=_clamp_roi(roi),
+                        roi=roi,
                     )
                 )
             # Blank ROI sits just below the row centre.
             bcx, bcy = _bilinear(corners, 0.5, min(v + cell_h, 1.0))
-            blanks[q_no] = _clamp_roi(
-                {"x": bcx - blank_w / 2.0, "y": bcy, "w": blank_w, "h": blank_h}
-            )
+            blanks[q_no] = {"x": bcx - blank_w / 2.0, "y": bcy, "w": blank_w, "h": blank_h}
         return cells, blanks
 
     # Default: grid_origin mode (single top-left anchor + regular gaps).

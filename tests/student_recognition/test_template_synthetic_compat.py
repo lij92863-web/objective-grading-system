@@ -15,14 +15,6 @@ from app.student_recognition.template.template_profile import TemplateProfile
 from app.student_recognition.template.template_validator import TemplateValidator
 
 
-def _collect(test, out):
-    if isinstance(test, unittest.TestSuite):
-        for sub in test:
-            _collect(sub, out)
-    else:
-        out.append(test)
-
-
 class TestSyntheticCompat(unittest.TestCase):
     def test_synthetic_template_profile_still_valid(self):
         synth = build_default_template()
@@ -54,30 +46,10 @@ class TestSyntheticCompat(unittest.TestCase):
         self.assertIsInstance(png, bytes)
         self.assertGreater(len(png), 0)
 
-    def test_sre121_tests_still_pass(self):
-        # Guard: run the full legacy (non-template) suite to prove no regression
-        # in the existing SRE121 tests (must remain green).
-        loader = unittest.TestLoader()
-        discovered = loader.discover(
-            "tests/student_recognition", pattern="test*.py", top_level_dir="."
-        )
-        all_tests = []
-        _collect(discovered, all_tests)
-        pruned = unittest.TestSuite()
-        kept = 0
-        for t in all_tests:
-            mod = t.__class__.__module__ or ""
-            if "template" in mod:
-                continue
-            pruned.addTest(t)
-            kept += 1
-        self.assertGreater(kept, 100, "expected to retain the legacy ~123 tests")
-        result = unittest.TextTestRunner(verbosity=0).run(pruned)
-        self.assertTrue(
-            result.wasSuccessful(),
-            f"legacy SRE121 regression: {len(result.errors)} errors, "
-            f"{len(result.failures)} failures",
-        )
+    def test_sre121_modules_remain_importable(self):
+        # Normal discovery executes the synthetic suite once; never nest a runner.
+        self.assertTrue(callable(SyntheticSheetGenerator))
+        self.assertTrue(callable(GroundTruth))
 
 
 if __name__ == "__main__":

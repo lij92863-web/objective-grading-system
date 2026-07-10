@@ -15,6 +15,11 @@ class TestROIMapperCropper(unittest.TestCase):
         p=TemplateProfile.from_dict(_valid_dict()); im=ImageMatrix(240,360,(255,)*(240*360)); page=NormalizedPageImage(im,PageLocationReport("page_located",((0,0),)*4,1))
         with tempfile.TemporaryDirectory() as tmp:
             arts=crop_option_cells(page,p,tmp); self.assertEqual(len(arts),48); self.assertTrue(all(__import__('pathlib').Path(a.path).exists() for a in arts))
+            self.assertTrue(all(len(a.image_hash) == 64 for a in arts))
+            self.assertEqual(arts[0].template_ref["template_id"], p.template_id)
+    def test_roi_mapper_rejects_negative_and_empty(self):
+        for roi in ({"x":-.1,"y":0,"w":.1,"h":.1},{"x":0,"y":-.1,"w":.1,"h":.1},{"x":0,"y":0,"w":0,"h":.1},{"x":0,"y":0,"w":.1,"h":0}):
+            with self.assertRaises(ValueError): map_normalized_roi(roi,100,100)
     def test_roi_cropper_rejects_failed_page(self):
         p=TemplateProfile.from_dict(_valid_dict()); im=ImageMatrix(240,360,(255,)*(240*360)); page=NormalizedPageImage(im,PageLocationReport("page_location_failed",(),0))
         with tempfile.TemporaryDirectory() as tmp:

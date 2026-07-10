@@ -1,0 +1,5 @@
+{
+  "valid_cases": ["single_choice", "multiple_choice", "true_false", "blank", "partial_credit", "missing_answer"],
+  "invalid_cases": ["invalid_choice", "duplicate_question", "unknown_status", "unknown_type", "precheck_blocking", "non_overridable_override"],
+  "policy_cases": ["archive", "no_archive"]
+}

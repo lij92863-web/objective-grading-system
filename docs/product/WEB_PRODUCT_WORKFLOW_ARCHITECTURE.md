@@ -30,8 +30,9 @@ Daily Grading
   -> Provisional Score + ReviewIssue[]
   -> Resolve Identity Issues
   -> Resolve Answer / Page Issues
-  -> Resolve Duplicate Conflicts
+  -> Resolve or Explicitly Exclude Duplicate Captures
   -> Finalization Gate
+  -> Persisted Confirmed-Snapshot Builder
   -> Canonical Grading Precheck / Bridge
   -> Final CSV + JSON + Audit
 ```
@@ -39,6 +40,11 @@ Daily Grading
 An unknown identity does not stop answer candidate collection. An unreadable
 question does not stop other questions. Neither may enter final scores before
 teacher resolution. Provisional data is never exposed by the final export API.
+
+Duplicate captures are retained as evidence and explicitly transition to
+`EXCLUDED`; they are omitted from confirmed submissions and final scores. The
+confirmation bridge receives a snapshot derived from persisted draft, issue and
+resolution records. Stable IDs, rather than list position, define association.
 
 ## Layers
 
@@ -50,7 +56,8 @@ teacher resolution. Provisional data is never exposed by the final export API.
 | `app/capture` | Source validation, safe copy, deduplication, queueing | Grading |
 | `app/product/pipeline` | Adapt existing offline recognition evidence into provisional records | Guessing identity/answers; final export |
 | `app/product/review` | Issue ordering and audited teacher resolution | Overwriting original evidence |
-| `app/product/finalization` | Fail-closed release gate and final exports | Accepting provisional or anonymous records |
+| `app/product/scoring` | Canonical manual-score and final-score invariants | Silent clamping or duplicated grading semantics |
+| `app/product/finalization` | Persisted confirmation snapshots, fail-closed release gate and atomic final exports | Accepting provisional, anonymous, order-coupled or fabricated records |
 | `app/storage` | Schema, transactions, repositories | Product policy |
 
 ## Blocking, warning and unsupported cases

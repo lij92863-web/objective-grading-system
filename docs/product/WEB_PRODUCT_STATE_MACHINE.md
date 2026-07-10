@@ -43,6 +43,11 @@ QUALITY_FAILED|PAGE_FAILED -> REVIEW_REQUIRED|EXCLUDED
 Quality/page failures stop recognition for that image. They become review
 issues and never become zero scores automatically.
 
+`EXCLUDED` is an audited terminal capture outcome. Exclusion requires a teacher
+reason and atomically resolves all open issues for that capture while retaining
+the image reference, draft and review evidence. It cannot produce a confirmed
+submission or final score.
+
 ## Review and finalization
 
 ```text
@@ -54,4 +59,6 @@ FinalizationGateState: BLOCKED -> READY -> FINALIZED
 
 Waiver/exclusion requires a reason and audit record. An open, in-progress or
 blocked issue keeps the gate BLOCKED. READY is recalculated, not trusted from a
-request. Illegal transitions raise a state error and are tested.
+request. Before READY, persisted manual overrides and confirmed-snapshot
+associations are rebuilt and validated. Illegal transitions raise a state error
+and are tested.

@@ -90,14 +90,27 @@ class ProductPipeline:
                     recognition.student_no.strip(),
                     recognition.name.strip(),
                 )
-                if student is None or not exact_number:
+                duplicate_identity = bool(
+                    student is not None
+                    and exact_number
+                    and self.repository.identity_already_used(
+                        connection,
+                        session.session_id,
+                        student["id"],
+                    )
+                )
+                if student is None:
+                    issue_specs.append((ReviewIssueType.IDENTITY_MISSING, None, {}))
+                elif duplicate_identity:
+                    issue_specs.append((ReviewIssueType.IDENTITY_DUPLICATE, None, {}))
+                elif not exact_number:
                     issue_specs.append((ReviewIssueType.IDENTITY_MISSING, None, {}))
                 if student is not None:
                     provisional_payload["identity"] = {
                         "student_id": student["id"],
                         "student_no": student["student_no"],
                         "name": student["name"],
-                        "confirmed": exact_number,
+                        "confirmed": exact_number and not duplicate_identity,
                     }
                 provisional = build_provisional_score(
                     answer_key,

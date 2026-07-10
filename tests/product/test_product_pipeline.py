@@ -119,6 +119,23 @@ class ProductPipelineTests(unittest.TestCase):
             0,
         )
 
+    def test_duplicate_identity_creates_review_issue(self):
+        for suffix in (b"duplicate-one", b"duplicate-two"):
+            result = self.pipeline.process_mock(
+                self.job(suffix).capture_job_id,
+                MockRecognitionInput(
+                    student_no="001",
+                    answer_candidates={1: "A", 2: "B"},
+                ),
+            )
+        self.assertEqual(len(result.issue_ids), 1)
+        with self.database.connection() as connection:
+            issue_type = connection.execute(
+                "SELECT issue_type FROM review_issues WHERE id = ?",
+                (result.issue_ids[0],),
+            ).fetchone()[0]
+        self.assertEqual(issue_type, "IDENTITY_DUPLICATE")
+
 
 def connection_count(database, table):
     with database.connection() as connection:

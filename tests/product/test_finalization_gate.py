@@ -80,7 +80,12 @@ class FinalizationGateTests(unittest.TestCase):
                 MockRecognitionInput(student_no="001", answer_candidates={1: "A", 2: "B"}),
             )
         decision = self.final.confirm_teacher(self.session.session_id)
-        self.assertTrue(any("duplicate_student" in item for item in decision.blockers))
+        self.assertTrue(
+            any(
+                "duplicate_student" in item or "IDENTITY_DUPLICATE" in item
+                for item in decision.blockers
+            )
+        )
 
     def test_finalize_allows_after_all_issues_resolved_and_writes_exports(self):
         self.process(b"resolved", MockRecognitionInput(answer_candidates={1: "A", 2: None}))

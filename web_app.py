@@ -7,7 +7,6 @@ from email.parser import BytesParser
 from email.policy import default as email_policy
 import json
 import mimetypes
-import shutil
 import sys
 import tempfile
 import traceback
@@ -32,7 +31,7 @@ import roster_manager
 from app.application.product_preview_adapter import build_preview_data
 from app.data_io import draft_to_review_rows, parse_answer_source, review_rows_to_answer_key_csv
 from app.validators import has_blocking_errors
-from app.workflow import make_run_id, run_grading, safe_slug
+from app.workflow import make_run_id
 from app.web_product import ProductWebController, UploadedFile
 
 
@@ -351,7 +350,10 @@ class WebHandler(BaseHTTPRequestHandler):
             if parsed.path == "/api/exams/preview":
                 return self.handle_preview()
             if parsed.path == "/api/exams/grade":
-                return self.handle_grade()
+                return self.send_error_json(
+                    "旧发布接口已停用，请通过考试会话的复核与最终发布页面操作。",
+                    410,
+                )
             if parsed.path == "/api/answer/parse":
                 return self.handle_answer_parse()
             if parsed.path == "/api/answer/confirm":
@@ -503,60 +505,6 @@ class WebHandler(BaseHTTPRequestHandler):
             )
         write_json(capture_dir / "capture_manifest.json", manifest)
         self.send_json({"ok": True, "session_id": session_id, "saved_count": len(manifest["images"]), "message": "拍照图片已保存，识别前请先确认。"})
-
-    def handle_grade(self) -> None:
-        length = int(self.headers.get("Content-Length", "0"))
-        body = self.rfile.read(length)
-        payload = json.loads(body.decode("utf-8") or "{}")
-        session_id = str(payload.get("session_id", ""))
-        allow_errors = bool(payload.get("allow_errors", False))
-        session_dir = (UPLOAD_ROOT / session_id).resolve()
-        if not str(session_dir).startswith(str(UPLOAD_ROOT.resolve())) or not session_dir.exists():
-            return self.send_error_json("没有找到这次考试的临时文件，请重新上传。")
-        metadata = read_json(session_dir / "session.json")
-        run_id = make_run_id()
-        class_name = str(metadata.get("class_name") or "未命名班级")
-        exam_name = str(metadata.get("exam_name") or "未命名考试")
-        exam_date = str(metadata.get("exam_date") or "")
-        out_dir = REPORTS_ROOT / safe_slug(class_name) / f"{safe_slug(exam_date)}_{safe_slug(exam_name)}_{run_id}"
-        result = run_grading(
-            answer_key_path=session_dir / str(metadata["answer_key"]),
-            submissions_path=session_dir / str(metadata["submissions"]),
-            question_bank_path=session_dir / str(metadata.get("question_bank")) if metadata.get("question_bank") else None,
-            out_dir=out_dir,
-            exam_name=exam_name,
-            class_name=class_name,
-            subject=str(metadata.get("subject") or ""),
-            exam_date=exam_date,
-            archive_root=EXAMS_ROOT,
-            no_archive=False,
-            allow_errors=allow_errors,
-            run_id=run_id,
-            source_files={
-                "answer_key": str(session_dir / str(metadata["answer_key"])),
-                "submissions": str(session_dir / str(metadata["submissions"])),
-                "question_bank": str(session_dir / str(metadata.get("question_bank") or "")),
-            },
-        )
-        session_capture_dir = CAPTURE_ROOT / session_id
-        if session_capture_dir.exists():
-            target_capture_dir = out_dir / "captures"
-            if target_capture_dir.exists():
-                shutil.rmtree(target_capture_dir)
-            shutil.copytree(session_capture_dir, target_capture_dir)
-            if result.get("archived_dir"):
-                archived_capture_dir = Path(str(result["archived_dir"])) / "captures"
-                if archived_capture_dir.exists():
-                    shutil.rmtree(archived_capture_dir)
-                shutil.copytree(session_capture_dir, archived_capture_dir)
-        if result.get("index"):
-            result["index_url"] = f"/file?p={Path(result['index']).resolve().relative_to(PROJECT_ROOT).as_posix()}"
-        if result.get("advanced_dashboard"):
-            result["dashboard_url"] = f"/file?p={Path(result['advanced_dashboard']).resolve().relative_to(PROJECT_ROOT).as_posix()}"
-        if result.get("teaching_plan"):
-            result["teaching_url"] = f"/file?p={Path(result['teaching_plan']).resolve().relative_to(PROJECT_ROOT).as_posix()}"
-        self.send_json(result, 200 if result.get("ok") else 409)
-
 
 def run(host: str = "127.0.0.1", port: int = 8765) -> None:
     UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)

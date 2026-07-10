@@ -42,6 +42,24 @@ class PipelineRepository:
             return (rows[0], False) if len(rows) == 1 else (None, False)
         return None, False
 
+    def identity_already_used(
+        self,
+        connection: sqlite3.Connection,
+        session_id: str,
+        student_id: str,
+    ) -> bool:
+        rows = self.storage.all(
+            connection,
+            "SELECT provisional_json FROM recognition_drafts WHERE session_id = ?",
+            (session_id,),
+        )
+        for row in rows:
+            provisional = json.loads(row["provisional_json"])
+            identity = provisional.get("identity") or {}
+            if identity.get("student_id") == student_id:
+                return True
+        return False
+
     def add_draft(
         self,
         connection: sqlite3.Connection,

@@ -14,6 +14,7 @@ methods (``get_option_cells`` / ``get_identity_roi`` / ``get_blank_roi``).
 """
 
 import copy
+import json
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
@@ -25,6 +26,8 @@ __all__ = [
     "OptionCell",
     "TemplateRef",
     "TemplateProfile",
+    "export_template",
+    "import_template",
     "_COORDINATE_SYSTEM",
     "_IDENTITY_KEYS",
     "valid_coordinate_system",
@@ -146,7 +149,9 @@ class TemplateProfile:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TemplateProfile":
+    def from_dict(
+        cls, data: Dict[str, Any], *, _validate: bool = True
+    ) -> "TemplateProfile":
         """Build a ``TemplateProfile`` from a v2 dict (auto-adapting v1).
 
         Raises:
@@ -268,7 +273,7 @@ class TemplateProfile:
                     ]
                 )
             )
-        return cls(
+        profile = cls(
             schema_version=SCHEMA_VERSION,
             template_id=str(data["template_id"]),
             template_name=data.get("template_name"),
@@ -279,6 +284,13 @@ class TemplateProfile:
             reference_canvas=dict(data.get("reference_canvas", {})),
             pages=[deep_copy_page(p) for p in pages],
         )
+        if _validate:
+            from app.student_recognition.template.template_validator import TemplateValidator
+
+            report = TemplateValidator().validate(profile)
+            if not report.is_valid():
+                raise TemplateValidationError(report)
+        return profile
 
     # ------------------------------------------------------------------ #
     # Frozen OMR interface (normalized ROI only)
@@ -368,3 +380,112 @@ class TemplateProfile:
     def question_count(self) -> int:
         """Return the total number of distinct questions across all blocks."""
         return len({cell.question_no for cell in self.get_all_option_cells()})
+
+    def list_questions(self) -> List[int]:
+        """Return sorted unique question numbers declared by the template."""
+        return sorted({cell.question_no for cell in self.get_all_option_cells()})
+
+    def get_question_block(self, question_no: int) -> Optional[Dict[str, Any]]:
+        """Return a defensive copy of the block containing ``question_no``."""
+        from app.student_recognition.template.anchor_layout import parse_question_range
+
+        for _page, block in self._iter_blocks():
+            if question_no in parse_question_range(block.get("question_range", [])):
+                return copy.deepcopy(block)
+        return None
+
+    def get_template_ref(self) -> TemplateRef:
+        """Return the immutable id/version reference for this profile."""
+        return TemplateRef(self.template_id, self.template_version)
+
+    def to_canonical_json(self) -> str:
+        """Return stable UTF-8 JSON text for hashing, export and roundtrip."""
+        return export_template(self)
+
+
+def export_template(profile: TemplateProfile) -> str:
+    """Serialize a profile using the canonical SRE945 JSON representation."""
+    return json.dumps(
+        profile.to_dict(), ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    )
+
+
+def import_template(payload: "str | bytes | Dict[str, Any]") -> TemplateProfile:
+    """Strictly import and validate v2 JSON or an explicitly supported v1 shape."""
+    from app.student_recognition.template.template_validator import (
+        TemplateValidationError,
+        TemplateValidator,
+        ValidationIssue,
+        ValidationReport,
+    )
+
+    if isinstance(payload, bytes):
+        payload = payload.decode("utf-8")
+    data = json.loads(payload) if isinstance(payload, str) else copy.deepcopy(payload)
+    unknown_path = _first_unknown_field(data)
+    if unknown_path is not None:
+        code = ErrorCode.TEMPLATE_SCHEMA_INVALID
+        raise TemplateValidationError(
+            ValidationReport.invalid([ValidationIssue(code, message_for(code), unknown_path)])
+        )
+    profile = TemplateProfile.from_dict(data)
+    report = TemplateValidator().validate(profile)
+    if not report.is_valid():
+        raise TemplateValidationError(report)
+    return profile
+
+
+def _first_unknown_field(data: Any) -> Optional[str]:
+    """Return the first unknown v2 field path; v1 is delegated to its adapter."""
+    if not isinstance(data, dict) or data.get("schema_version") in (1, "1"):
+        return None
+    allowed_top = {
+        "schema_version", "template_id", "template_name", "template_version",
+        "created_at", "updated_at", "coordinate_system", "reference_canvas", "pages",
+    }
+    allowed_page = {
+        "template_page_id", "page_no", "anchors", "identity",
+        "question_blocks", "blank_rois",
+    }
+    allowed_block = {
+        "block_id", "question_type", "question_range", "options", "anchor_id",
+        "anchor_mode", "layout", "blank_roi",
+    }
+    allowed_layout = {"row_gap", "option_gap", "cell_w", "cell_h", "columns"}
+    allowed_anchor = {"anchor_id", "x", "y", "description"}
+    allowed_roi = {"x", "y", "w", "h", "question_no", "roi"}
+    for key in data:
+        if key not in allowed_top:
+            return key
+    for pi, page in enumerate(data.get("pages", []) or []):
+        if not isinstance(page, dict):
+            continue
+        for key in page:
+            if key not in allowed_page:
+                return f"pages[{pi}].{key}"
+        for ai, anchor in enumerate(page.get("anchors", []) or []):
+            if isinstance(anchor, dict):
+                for key in anchor:
+                    if key not in allowed_anchor:
+                        return f"pages[{pi}].anchors[{ai}].{key}"
+        identity = page.get("identity", {}) or {}
+        if isinstance(identity, dict):
+            for name, roi in identity.items():
+                if name not in _IDENTITY_KEYS:
+                    return f"pages[{pi}].identity.{name}"
+                if isinstance(roi, dict):
+                    for key in roi:
+                        if key not in allowed_roi:
+                            return f"pages[{pi}].identity.{name}.{key}"
+        for bi, block in enumerate(page.get("question_blocks", []) or []):
+            if not isinstance(block, dict):
+                continue
+            for key in block:
+                if key not in allowed_block:
+                    return f"pages[{pi}].question_blocks[{bi}].{key}"
+            layout = block.get("layout", {}) or {}
+            if isinstance(layout, dict):
+                for key in layout:
+                    if key not in allowed_layout:
+                        return f"pages[{pi}].question_blocks[{bi}].layout.{key}"
+    return None

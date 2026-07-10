@@ -59,7 +59,7 @@ def _valid_dict(**overrides):
 
 
 def _report(d):
-    return TemplateValidator().validate(TemplateProfile.from_dict(d))
+    return TemplateValidator().validate(TemplateProfile.from_dict(d, _validate=False))
 
 
 def _codes(d):

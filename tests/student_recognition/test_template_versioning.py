@@ -84,8 +84,10 @@ class TestTemplateVersioning(unittest.TestCase):
             listed = store.list_templates()
             self.assertEqual(len(listed), 1)
             self.assertEqual(listed[0][2], 1)
-            # Overwrite flag must be explicit to replace.
-            store.save(_valid_profile(version=1), overwrite=True)
+            # There is deliberately no overwrite escape hatch.
+            with self.assertRaises(TemplateStoreError) as ctx:
+                store.save(_valid_profile(version=1))
+            self.assertEqual(ctx.exception.error_code, ErrorCode.TEMPLATE_VERSION_CONFLICT)
             self.assertEqual(len(store.list_templates()), 1)
 
     def test_template_ref_contains_id_and_version(self):

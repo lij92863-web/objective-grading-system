@@ -31,6 +31,8 @@ FORBIDDEN_MODULES = (
     "PIL",
     "cv2",
     "numpy",
+    "app.workflow",
+    "objective_grader",
 )
 
 
@@ -61,7 +63,7 @@ def _module_import_violations() -> list:
                 elif isinstance(node, ast.ImportFrom):
                     mod = node.module or ""
                     top = mod.split(".")[0]
-                    if top in FORBIDDEN_MODULES:
+                    if top in FORBIDDEN_MODULES or mod in FORBIDDEN_MODULES:
                         violations.append(f"{path}:{node.lineno}: from {mod} import ...")
     return violations
 
@@ -156,6 +158,23 @@ class TestTemplateBuilderGuards(unittest.TestCase):
             self.assertEqual(
                 code_hits, [], f"{lib} must not appear in template package code"
             )
+
+    def test_template_builder_does_not_import_workflow_or_objective_grader(self):
+        hits = [
+            value for value in _module_import_violations()
+            if "app.workflow" in value or "objective_grader" in value
+        ]
+        self.assertEqual(hits, [])
+
+    def test_template_builder_does_not_write_grading_outputs(self):
+        for pattern in (r"submissions\.csv", r"data[/\\]reports", r"official_report"):
+            self.assertEqual(_scan_substring_excluding_docs_comments(pattern), [])
+
+    def test_template_builder_has_no_freeform_state_fields(self):
+        self.assertEqual(
+            _scan_substring_excluding_docs_comments(r"['\"]state['\"]\s*:"),
+            [],
+        )
 
 
 if __name__ == "__main__":

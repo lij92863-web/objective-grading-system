@@ -96,6 +96,14 @@ class TestTemplateIntegration(unittest.TestCase):
         self.assertIsNotNone(blank)
         self.assertIn("h", blank)
 
+        self.assertEqual(profile.list_questions(), list(range(1, 13)))
+        self.assertEqual(profile.get_question_block(1)["block_id"], "choice_block_1")
+        self.assertIsNone(profile.get_question_block(99))
+        self.assertEqual(
+            profile.get_template_ref().to_dict(),
+            {"template_id": "objective_sheet_v1", "template_version": 1},
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -91,7 +91,7 @@ class TemplateDraft:
             TemplateValidationError: If validation fails (report carries the
                 constitutional ``ErrorCode`` members).
         """
-        profile = TemplateProfile.from_dict(self.to_dict())
+        profile = TemplateProfile.from_dict(self.to_dict(), _validate=False)
         report = TemplateValidator().validate(profile)
         if report.status != "valid":
             raise TemplateValidationError(report)

@@ -55,7 +55,7 @@ def _valid_dict(**overrides):
 
 
 def _codes(d):
-    report = TemplateValidator().validate(TemplateProfile.from_dict(d))
+    report = TemplateValidator().validate(TemplateProfile.from_dict(d, _validate=False))
     return {e.code for e in report.errors}
 
 

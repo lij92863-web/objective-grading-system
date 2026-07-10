@@ -8,6 +8,17 @@ import unittest
 
 from app.student_recognition.errors.error_codes import ErrorCode
 from app.student_recognition.template.template_profile import TemplateProfile
+from app.student_recognition.template import (
+    Anchor,
+    BlankROI,
+    BubbleGrid,
+    CoordinateSystem,
+    IdentityRegion,
+    QuestionBlock,
+    ROIBox,
+    ReferenceCanvas,
+    TemplatePage,
+)
 from app.student_recognition.template.template_validator import (
     TemplateValidationError,
 )
@@ -133,6 +144,22 @@ class TestTemplateProfileSchema(unittest.TestCase):
         profile = TemplateProfile.from_dict(v1_dict)
         self.assertEqual(profile.schema_version, "2.0")
         self.assertEqual(profile.template_id, "synthetic-v1")
+
+    def test_explicit_schema_value_objects_serialize(self):
+        roi = ROIBox(0.1, 0.2, 0.3, 0.4)
+        grid = BubbleGrid(0.05, 0.06, 0.02, 0.01)
+        block = QuestionBlock("b1", "single_choice", [1, 2], ["A", "B", "C", "D"], "a1", grid)
+        page = TemplatePage(
+            "page_1",
+            1,
+            anchors=[Anchor("a1", 0.1, 0.2)],
+            identity=IdentityRegion(combined_identity_roi=roi),
+            question_blocks=[block],
+            blank_rois=[BlankROI(3, roi)],
+        )
+        self.assertEqual(CoordinateSystem().to_dict()["type"], "normalized")
+        self.assertEqual(ReferenceCanvas(240, 360, "synthetic:test").to_dict()["width"], 240)
+        self.assertEqual(page.to_dict()["identity"]["combined_identity_roi"], roi.to_dict())
 
 
 if __name__ == "__main__":

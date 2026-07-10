@@ -105,6 +105,7 @@ _CATALOG_LIST: list[CatalogEntry] = [
     _e(ErrorCode.TEMPLATE_DUPLICATE_PAGE_NO, CATEGORY_TEMPLATE, "blocking", "模板页号重复。", True, True, True),
     _e(ErrorCode.TEMPLATE_VERSION_CONFLICT, CATEGORY_TEMPLATE, "blocking", "同版本模板已存在，禁止覆盖旧版本。", True, True, True),
     _e(ErrorCode.TEMPLATE_DRAFT_NOT_FINALIZED, CATEGORY_TEMPLATE, "blocking", "草稿未经验证，不能用于识别。", True, True, True),
+    _e(ErrorCode.TEMPLATE_SCHEMA_INVALID, CATEGORY_TEMPLATE, "blocking", "模板 schema 含未知字段或非法结构。", True, True, True),
 
     # ---- ROI ----
     _e(ErrorCode.ROI_OUT_OF_BOUNDS, CATEGORY_ROI, "blocking", "ROI 越界，拒绝裁剪。", True, True, True),

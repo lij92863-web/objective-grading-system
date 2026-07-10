@@ -57,7 +57,7 @@ def _valid_dict(**overrides):
 
 
 def _validate(d):
-    return TemplateValidator().validate(TemplateProfile.from_dict(d))
+    return TemplateValidator().validate(TemplateProfile.from_dict(d, _validate=False))
 
 
 class TestTemplateRoi(unittest.TestCase):

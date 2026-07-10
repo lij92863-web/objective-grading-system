@@ -68,15 +68,12 @@ class TemplateStore:
         self,
         profile: TemplateProfile,
         directory: "str | Path | None" = None,
-        overwrite: bool = False,
     ) -> Path:
         """Persist ``profile`` atomically; refuse to overwrite same version.
 
         Args:
             profile: The validated :class:`TemplateProfile` to persist.
             directory: Optional override for the target directory.
-            overwrite: If True, replace an existing ``(id, version)`` file.
-
         Raises:
             TemplateStoreError: If ``(template_id, template_version)`` already
                 exists in the target directory and ``overwrite`` is False.
@@ -85,12 +82,11 @@ class TemplateStore:
         target_dir.mkdir(parents=True, exist_ok=True)
         path = target_dir / _template_filename(profile.template_id, profile.template_version)
 
-        if path.exists() and not overwrite:
+        if path.exists():
             raise TemplateStoreError(
                 ErrorCode.TEMPLATE_VERSION_CONFLICT,
                 f"template '{profile.template_id}' v{profile.template_version} "
-                f"already exists at {path}; refusing to overwrite "
-                f"(set overwrite=True to replace).",
+                f"already exists at {path}; refusing to overwrite.",
             )
 
         payload = profile.to_dict()

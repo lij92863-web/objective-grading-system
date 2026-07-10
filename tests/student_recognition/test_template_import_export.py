@@ -1,10 +1,15 @@
 """SRE945 §15.7 -- import / export roundtrip & schema rejection tests."""
 
 import copy
+import json
 import unittest
 
 from app.student_recognition.errors.error_codes import ErrorCode
-from app.student_recognition.template.template_profile import TemplateProfile
+from app.student_recognition.template.template_profile import (
+    TemplateProfile,
+    export_template,
+    import_template,
+)
 from app.student_recognition.template.template_validator import TemplateValidationError
 
 
@@ -81,6 +86,33 @@ class TestTemplateImportExport(unittest.TestCase):
             self.assertAlmostEqual(a.roi["y"], b.roi["y"], delta=1e-12)
             self.assertAlmostEqual(a.roi["w"], b.roi["w"], delta=1e-12)
             self.assertAlmostEqual(a.roi["h"], b.roi["h"], delta=1e-12)
+
+    def test_template_canonical_export_is_byte_stable(self):
+        first = export_template(TemplateProfile.from_dict(_valid_dict()))
+        second = export_template(import_template(first))
+        self.assertEqual(second, first)
+        self.assertEqual(json.loads(first)["schema_version"], "2.0")
+
+    def test_import_template_validates_before_returning_profile(self):
+        bad = _valid_dict()
+        bad["pages"][0]["identity"] = {}
+        with self.assertRaises(TemplateValidationError) as ctx:
+            import_template(bad)
+        self.assertEqual(
+            ctx.exception.report.errors[0].code,
+            ErrorCode.TEMPLATE_IDENTITY_ROI_MISSING,
+        )
+
+    def test_template_import_rejects_unknown_field(self):
+        bad = _valid_dict()
+        bad["unexpected"] = True
+        with self.assertRaises(TemplateValidationError) as ctx:
+            import_template(bad)
+        self.assertEqual(
+            ctx.exception.report.errors[0].code,
+            ErrorCode.TEMPLATE_SCHEMA_INVALID,
+        )
+        self.assertEqual(ctx.exception.report.errors[0].path, "unexpected")
 
 
 if __name__ == "__main__":

@@ -5,7 +5,26 @@ workflows can keep using positional construction where they already do.
 """
 
 import dataclasses
-from typing import Dict, FrozenSet, Optional, Tuple
+from enum import Enum
+from types import MappingProxyType
+from typing import Dict, FrozenSet, Mapping, Optional, Tuple
+
+
+class QuestionType(str, Enum):
+    SINGLE_CHOICE = "single_choice"
+    MULTIPLE_CHOICE = "multiple_choice"
+    TRUE_FALSE = "true_false"
+    BLANK = "blank"
+
+
+@dataclasses.dataclass(frozen=True)
+class DuplicateQuestionIssue:
+    question_number: int
+    row_numbers: Tuple[int, ...]
+    raw_answers: Tuple[str, ...]
+    raw_points: Tuple[str, ...]
+    raw_types: Tuple[str, ...]
+    is_conflicting: bool
 
 
 @dataclasses.dataclass(frozen=True)
@@ -29,6 +48,7 @@ class QuestionSpec:
 class AnswerKey:
     questions: Tuple[QuestionSpec, ...]
     duplicate_questions: Tuple[int, ...] = ()
+    duplicate_issues: Tuple[DuplicateQuestionIssue, ...] = ()
 
     @property
     def total_points(self) -> float:
@@ -43,10 +63,14 @@ class AnswerKey:
 class Submission:
     student_id: str
     name: str
-    answers: Dict[int, FrozenSet[str]]
-    raw_answers: Dict[int, str]
+    answers: Mapping[int, FrozenSet[str]]
+    raw_answers: Mapping[int, str]
     extra_questions: Tuple[int, ...]
     row_number: int
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "answers", MappingProxyType(dict(self.answers)))
+        object.__setattr__(self, "raw_answers", MappingProxyType(dict(self.raw_answers)))
 
 
 @dataclasses.dataclass(frozen=True)

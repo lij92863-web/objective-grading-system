@@ -8,25 +8,15 @@ from .choice_scoring import score_choice_answer
 from .models import AnswerKey, QuestionResult, QuestionSpec, SingleQuestionScore, StudentResult, Submission
 from .normalize import format_answer, format_expected_answer, is_choice_answer, matches_text_answer, normalize_text_answer
 from .true_false_scoring import normalize_true_false
+from .question_types import resolve_question_type
 
 
 def _question_type(spec: QuestionSpec) -> str:
-    explicit = (spec.question_type or "").strip().lower()
-    if explicit:
-        if explicit in {"judge", "judgement", "judgment", "tf", "truefalse", "true_false", "\u5224\u65ad", "\u5224\u65ad\u9898"}:
-            return "true_false"
-        if explicit in {"blank", "fill_blank", "fill_in_blank", "\u586b\u7a7a", "\u586b\u7a7a\u9898"}:
-            return "blank"
-        if explicit in {"single", "single_choice", "\u5355\u9009", "\u5355\u9009\u9898"}:
-            return "single_choice"
-        if explicit in {"multiple", "multiple_choice", "\u591a\u9009", "\u591a\u9009\u9898"}:
-            return "multiple_choice"
-    expected_text = (spec.answer_text or format_answer(spec.answers)).strip()
-    if normalize_true_false(expected_text) is not None or spec.answers <= {"T", "F", "\u221a", "\u00d7", "X"}:
-        return "true_false"
-    if is_choice_answer(spec.answers):
-        return "multiple_choice" if len(spec.answers) > 1 else "single_choice"
-    return "blank"
+    return resolve_question_type(
+        spec.question_type,
+        spec.answer_text or format_answer(spec.answers),
+        spec.answers,
+    )
 
 
 def _detail(spec: QuestionSpec, actual: FrozenSet[str], raw_actual: str, score: float, status: str, reason: str = "", needs_review: bool = False) -> SingleQuestionScore:

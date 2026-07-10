@@ -1,14 +1,20 @@
 """CSV loaders matching the legacy answer-key and submissions loaders."""
 
 import csv
-import dataclasses
-import re
 from pathlib import Path
 from typing import Dict, FrozenSet, Iterable, List, Optional, Set, Tuple
 
+from app.domain.grading.models import (
+    AnswerKey,
+    DuplicateQuestionIssue,
+    QuestionSpec,
+    QuestionType,
+    Submission,
+)
+from app.domain.grading.normalize import normalize_answer, parse_question_number
+from app.domain.grading.question_types import resolve_question_type
 
-OPTION_RE = re.compile(r"[A-Z0-9]+")
-QUESTION_RE = re.compile(r"^(?:q|question|题)?\s*0*(\d+)$", re.IGNORECASE)
+
 TRUTHY = {"1", "true", "yes", "y", "是", "对", "允许", "partial"}
 QUESTION_STATUSES = {
     "normal",
@@ -37,80 +43,12 @@ FIELD_ALIASES = {
     "answer_aliases": ("answer_aliases", "aliases", "等价答案"),
     "tolerance": ("tolerance", "tol", "误差"),
     "status": ("status", "状态"),
+    "question_type": ("question_type", "type", "题型", "题目类型"),
 }
-
-
-@dataclasses.dataclass(frozen=True)
-class QuestionSpec:
-    number: int
-    answers: FrozenSet[str]
-    points: float = 1.0
-    partial_credit: bool = False
-    partial_points: Optional[float] = None
-    tags: Tuple[str, ...] = ()
-    source_id: str = ""
-    difficulty: int = 0
-    answer_text: str = ""
-    answer_aliases: Tuple[str, ...] = ()
-    tolerance: Optional[float] = None
-    status: str = "normal"
-    question_type: str = ""
-
-
-@dataclasses.dataclass(frozen=True)
-class AnswerKey:
-    questions: Tuple[QuestionSpec, ...]
-    duplicate_questions: Tuple[int, ...] = ()
-
-    @property
-    def total_points(self) -> float:
-        return sum(
-            question.points
-            for question in self.questions
-            if question.status not in {"cancelled", "manual_review"}
-        )
-
-    @property
-    def by_number(self) -> Dict[int, QuestionSpec]:
-        return {question.number: question for question in self.questions}
-
-
-@dataclasses.dataclass(frozen=True)
-class Submission:
-    student_id: str
-    name: str
-    answers: Dict[int, FrozenSet[str]]
-    raw_answers: Dict[int, str]
-    extra_questions: Tuple[int, ...]
-    row_number: int
-
-
-def normalize_answer(value: object) -> FrozenSet[str]:
-    if value is None:
-        return frozenset()
-    text = str(value).strip().upper()
-    if not text:
-        return frozenset()
-    text = (
-        text.replace("，", ",")
-        .replace("；", ";")
-        .replace("、", ",")
-        .replace("|", ",")
-        .replace("/", ",")
-    )
-    tokens = OPTION_RE.findall(text)
-    if len(tokens) == 1 and len(tokens[0]) > 1 and tokens[0].isalpha():
-        tokens = list(tokens[0])
-    return frozenset(token for token in tokens if token)
 
 
 def parse_bool(value: object) -> bool:
     return str(value or "").strip().lower() in TRUTHY
-
-
-def parse_question_number(header: str) -> Optional[int]:
-    match = QUESTION_RE.match(str(header).strip())
-    return int(match.group(1)) if match else None
 
 
 def read_csv(path: Path) -> List[Dict[str, str]]:
@@ -155,7 +93,17 @@ def parse_optional_float(value: object) -> Optional[float]:
 
 def parse_status(value: object) -> str:
     status = str(value or "").strip().lower() or "normal"
-    return status if status in QUESTION_STATUSES else status
+    if status not in QUESTION_STATUSES:
+        raise ValueError(f"unknown question status: {status}")
+    return status
+
+
+def parse_question_type(value: object, answer_raw: str, answers: FrozenSet[str]) -> str:
+    if not str(answer_raw or "").strip() and not str(value or "").strip():
+        # Preserve legacy CSV readability.  The canonical precheck rejects the
+        # missing expected answer before scoring, so this is not an inference.
+        return QuestionType.BLANK.value
+    return resolve_question_type(value, answer_raw, answers)
 
 
 def parse_difficulty(value: object) -> int:
@@ -177,21 +125,31 @@ def load_answer_key(path: Path) -> AnswerKey:
     questions: List[QuestionSpec] = []
     seen: Set[int] = set()
     duplicate_questions: List[int] = []
+    duplicate_issues: List[DuplicateQuestionIssue] = []
+    first_rows: Dict[int, Tuple[int, str, str, str]] = {}
     for index, row in enumerate(rows, start=2):
         number_raw = first_present(row, FIELD_ALIASES["question"])
         answer_raw = first_present(row, FIELD_ALIASES["answer"])
         if not number_raw:
             raise ValueError(f"Answer key row {index}: missing question number.")
         number = int(str(number_raw).strip())
+        points_raw = first_present(row, FIELD_ALIASES["points"], "1")
+        type_raw = first_present(row, FIELD_ALIASES["question_type"])
         if number in seen:
             duplicate_questions.append(number)
+            first = first_rows[number]
+            duplicate_issues.append(DuplicateQuestionIssue(
+                number, (first[0], index), (first[1], str(answer_raw)),
+                (first[2], str(points_raw)), (first[3], str(type_raw)),
+                (first[1], first[2], first[3]) != (str(answer_raw), str(points_raw), str(type_raw)),
+            ))
             continue
         tags_raw = first_present(row, FIELD_ALIASES["tags"])
         questions.append(
             QuestionSpec(
                 number=number,
                 answers=normalize_answer(answer_raw),
-                points=float(first_present(row, FIELD_ALIASES["points"], "1")),
+                points=float(points_raw),
                 partial_credit=parse_bool(
                     first_present(row, FIELD_ALIASES["partial"])
                 ),
@@ -213,14 +171,17 @@ def load_answer_key(path: Path) -> AnswerKey:
                 status=parse_status(
                     first_present(row, FIELD_ALIASES["status"], "normal")
                 ),
+                question_type=parse_question_type(type_raw, str(answer_raw or ""), normalize_answer(answer_raw)),
             )
         )
         seen.add(number)
+        first_rows[number] = (index, str(answer_raw), str(points_raw), str(type_raw))
     if not questions:
         raise ValueError("Answer key is empty.")
     return AnswerKey(
         tuple(sorted(questions, key=lambda question: question.number)),
         tuple(duplicate_questions),
+        tuple(duplicate_issues),
     )
 
 

@@ -266,6 +266,14 @@ class ProductWebController:
                 f'<p>处理状态：{html.escape(issue.state)}</p></article>'
             )
         identity = issue.issue_type.startswith("IDENTITY_")
+        maximum = issue.question_max_score
+        score_control = (
+            f'<p>本题满分：{maximum:g} 分</p>'
+            f'<label>手动得分：<input name="manual_score" type="number" '
+            f'min="0" max="{maximum:g}" step="any"></label>'
+            if maximum is not None else
+            '<p>本题满分不可用，不能手动给分。</p>'
+        )
         controls = (
             '<input name="student_no" placeholder="学号">'
             '<input name="name" placeholder="姓名">'
@@ -275,7 +283,7 @@ class ProductWebController:
             '<select name="action"><option value="MANUAL_SCORE">手动给分</option>'
             '<option value="MARK_WRONG">标记错误</option><option value="MARK_BLANK">标记空白</option>'
             '<option value="WAIVE">放弃该题</option><option value="EXCLUDE">排除试卷</option></select>'
-            '<input name="manual_score" type="number" step="0.5" placeholder="手动分数">'
+            f'{score_control}'
             '<input name="reason" required placeholder="处理原因">'
         )
         primary = (

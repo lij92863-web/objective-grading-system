@@ -17,9 +17,13 @@ class PresentedReviewIssue:
     question_number: int | None
     evidence_path: str
     state: str
+    question_max_score: float | None = None
 
 
-def present_issue(row: sqlite3.Row) -> PresentedReviewIssue:
+def present_issue(
+    row: sqlite3.Row,
+    question_max_score: float | None = None,
+) -> PresentedReviewIssue:
     return PresentedReviewIssue(
         issue_id=row["id"],
         issue_type=row["issue_type"],
@@ -27,6 +31,7 @@ def present_issue(row: sqlite3.Row) -> PresentedReviewIssue:
         question_number=row["question_number"],
         evidence_path=row["evidence_path"],
         state=row["state"],
+        question_max_score=question_max_score,
     )
 
 

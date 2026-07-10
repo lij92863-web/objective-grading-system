@@ -138,6 +138,24 @@ class WebProductWorkflowTests(unittest.TestCase):
         self.assertIn("exclude_capture", card)
         self.assertIn("required", card)
 
+    def test_answer_review_card_uses_canonical_question_maximum(self):
+        from app.product.review.review_presenter import PresentedReviewIssue
+
+        card = self.web._issue_card(
+            "session",
+            PresentedReviewIssue(
+                "issue",
+                "ANSWER_UNREADABLE",
+                "请复核第 1 题",
+                1,
+                "evidence.png",
+                "OPEN",
+                2.5,
+            ),
+        )
+        self.assertIn('min="0" max="2.5" step="any"', card)
+        self.assertIn("本题满分：2.5 分", card)
+
     def test_actual_local_http_server_serves_product_home(self):
         import web_app
 

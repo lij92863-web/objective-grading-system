@@ -42,7 +42,17 @@ class ReviewWorkflow:
             sql += " AND state IN ('OPEN', 'IN_PROGRESS', 'BLOCKED')"
         with self.database.connection() as connection:
             rows = self.storage.all(connection, sql, parameters)
-        return sorted((present_issue(row) for row in rows), key=review_sort_key)
+            answer_key = self._answer_key(connection, session_id)
+        by_number = answer_key.by_number
+        presented = (
+            present_issue(
+                row,
+                by_number[row["question_number"]].points
+                if row["question_number"] in by_number else None,
+            )
+            for row in rows
+        )
+        return sorted(presented, key=review_sort_key)
 
     def resolve_identity(
         self,

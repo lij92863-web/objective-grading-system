@@ -228,7 +228,7 @@ class ProductWebController:
         )
 
     def _review_page(self, session_id: str) -> WebResponse:
-        issues = self.facade.review.list_issues(session_id)
+        issues = self.facade.review.list_issues(session_id, include_closed=True)
         cards = "".join(self._issue_card(session_id, issue) for issue in issues)
         return self._page(
             "review.html",
@@ -260,6 +260,11 @@ class ProductWebController:
         )
 
     def _issue_card(self, session_id, issue) -> str:
+        if issue.state not in {"OPEN", "IN_PROGRESS", "BLOCKED"}:
+            return (
+                f'<article><h3>{html.escape(issue.teacher_message)}</h3>'
+                f'<p>处理状态：{html.escape(issue.state)}</p></article>'
+            )
         identity = issue.issue_type.startswith("IDENTITY_")
         controls = (
             '<input name="student_no" placeholder="学号">'
@@ -273,12 +278,22 @@ class ProductWebController:
             '<input name="manual_score" type="number" step="0.5" placeholder="手动分数">'
             '<input name="reason" required placeholder="处理原因">'
         )
-        return (
+        primary = (
             f'<article><h3>{html.escape(issue.teacher_message)}</h3>'
             f'<form method="post" action="/sessions/{html.escape(session_id)}/review/{html.escape(issue.issue_id)}/resolve">'
             f'<input type="hidden" name="issue_type" value="{html.escape(issue.issue_type)}">'
             f'{controls}<button>保存处理</button></form></article>'
         )
+        if not identity:
+            return primary
+        exclusion = (
+            f'<form method="post" action="/sessions/{html.escape(session_id)}/review/{html.escape(issue.issue_id)}/resolve">'
+            f'<input type="hidden" name="issue_type" value="{html.escape(issue.issue_type)}">'
+            '<input type="hidden" name="exclude_capture" value="yes">'
+            '<input name="reason" required placeholder="排除原因，例如重复拍摄">'
+            '<button>排除该答卷</button></form>'
+        )
+        return primary.replace("</article>", exclusion + "</article>")
 
     def _class_items(self) -> str:
         return "".join(

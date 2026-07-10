@@ -2,6 +2,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from app.capture import CaptureQueue, CaptureSourceType
 from app.classes import ClassService
@@ -143,6 +144,100 @@ class ReviewWorkflowTests(unittest.TestCase):
         self.assertEqual(json.loads(before), json.loads(after))
         self.assertEqual(resolution["original_evidence_path"], "immutable/evidence.png")
         self.assertEqual(audit_count, 1)
+
+    def test_duplicate_capture_can_be_excluded_with_reason_and_preserves_evidence(self):
+        identity_issue = self.review.list_issues(self.session.session_id)[0]
+        with self.assertRaises(ValueError):
+            self.review.exclude_capture_from_identity_issue(
+                identity_issue.issue_id,
+                reason="",
+            )
+        with self.database.connection() as connection:
+            before = connection.execute(
+                "SELECT evidence_json FROM recognition_drafts WHERE id = ?",
+                (self.result.draft_id,),
+            ).fetchone()[0]
+            job_id = connection.execute(
+                "SELECT capture_job_id FROM review_issues WHERE id = ?",
+                (identity_issue.issue_id,),
+            ).fetchone()[0]
+        self.review.exclude_capture_from_identity_issue(
+            identity_issue.issue_id,
+            reason="重复拍摄",
+        )
+        with self.database.connection() as connection:
+            job_state = connection.execute(
+                "SELECT state FROM capture_jobs WHERE id = ?",
+                (job_id,),
+            ).fetchone()[0]
+            open_count = connection.execute(
+                """
+                SELECT COUNT(*) FROM review_issues
+                WHERE capture_job_id = ? AND state IN ('OPEN', 'IN_PROGRESS', 'BLOCKED')
+                """,
+                (job_id,),
+            ).fetchone()[0]
+            after = connection.execute(
+                "SELECT evidence_json FROM recognition_drafts WHERE id = ?",
+                (self.result.draft_id,),
+            ).fetchone()[0]
+            resolution_count = connection.execute(
+                "SELECT COUNT(*) FROM review_resolutions WHERE issue_id IN (SELECT id FROM review_issues WHERE capture_job_id = ?)",
+                (job_id,),
+            ).fetchone()[0]
+            final_count = connection.execute(
+                "SELECT COUNT(*) FROM final_scores"
+            ).fetchone()[0]
+        self.assertEqual(job_state, "EXCLUDED")
+        self.assertEqual(open_count, 0)
+        self.assertEqual(before, after)
+        self.assertEqual(resolution_count, 2)
+        self.assertEqual(final_count, 0)
+        self.assertEqual(self.review.list_issues(self.session.session_id), [])
+        with self.assertRaises(ValueError):
+            self.review.exclude_capture_from_identity_issue(
+                identity_issue.issue_id,
+                reason="repeat attack",
+            )
+
+    def test_capture_exclusion_transaction_rolls_back_on_midway_failure(self):
+        identity_issue = self.review.list_issues(self.session.session_id)[0]
+        original = self.review._record_resolution
+        calls = 0
+
+        def fail_second(*args, **kwargs):
+            nonlocal calls
+            calls += 1
+            if calls == 2:
+                raise RuntimeError("midway attack")
+            return original(*args, **kwargs)
+
+        with mock.patch.object(self.review, "_record_resolution", side_effect=fail_second):
+            with self.assertRaises(RuntimeError):
+                self.review.exclude_capture_from_identity_issue(
+                    identity_issue.issue_id,
+                    reason="duplicate capture",
+                )
+        with self.database.connection() as connection:
+            states = connection.execute(
+                "SELECT state FROM review_issues ORDER BY created_at"
+            ).fetchall()
+            job_state = connection.execute(
+                "SELECT state FROM capture_jobs"
+            ).fetchone()[0]
+            resolution_count = connection.execute(
+                "SELECT COUNT(*) FROM review_resolutions"
+            ).fetchone()[0]
+        self.assertTrue(all(row[0] == "OPEN" for row in states))
+        self.assertEqual(job_state, "REVIEW_REQUIRED")
+        self.assertEqual(resolution_count, 0)
+
+    def test_missing_issue_cannot_be_excluded(self):
+        with self.assertRaises(ValueError):
+            self.review.exclude_capture_from_identity_issue(
+                "missing",
+                reason="duplicate capture",
+            )
 
 
 if __name__ == "__main__":

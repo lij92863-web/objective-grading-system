@@ -9,3 +9,4 @@ class TeacherAction(str, Enum):
     MARK_BLANK = "MARK_BLANK"
     WAIVE = "WAIVE"
     EXCLUDE = "EXCLUDE"
+    EXCLUDE_CAPTURE = "EXCLUDE_CAPTURE"

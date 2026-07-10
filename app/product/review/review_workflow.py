@@ -137,6 +137,101 @@ class ReviewWorkflow:
             else:
                 self._close_job_if_ready(connection, issue["capture_job_id"])
 
+    def exclude_capture_from_identity_issue(
+        self,
+        issue_id: str,
+        *,
+        reason: str,
+        actor: str = "teacher",
+    ) -> None:
+        reason = reason.strip()
+        actor = actor.strip()
+        if not reason:
+            raise ValueError("capture exclusion reason is required")
+        if not actor:
+            raise ValueError("capture exclusion actor is required")
+        with transaction(self.database) as connection:
+            issue = self._open_issue(connection, issue_id)
+            if not issue["issue_type"].startswith("IDENTITY_"):
+                raise ValueError("capture exclusion requires an identity issue")
+            session = self.storage.one(
+                connection,
+                "SELECT state FROM exam_sessions WHERE session_id = ?",
+                (issue["session_id"],),
+            )
+            if session is None:
+                raise ValueError("session does not exist")
+            if session["state"] in {"FINALIZED", "ARCHIVED"}:
+                raise ValueError("finalized or archived session is read-only")
+            published = self.storage.one(
+                connection,
+                "SELECT COUNT(*) AS count FROM final_scores WHERE session_id = ?",
+                (issue["session_id"],),
+            )["count"]
+            if published:
+                raise ValueError("capture already participates in official scores")
+            job = self.storage.one(
+                connection,
+                "SELECT * FROM capture_jobs WHERE id = ? AND session_id = ?",
+                (issue["capture_job_id"], issue["session_id"]),
+            )
+            if job is None:
+                raise ValueError("capture job does not exist in this session")
+            if job["state"] == CaptureJobState.EXCLUDED.value:
+                raise ValueError("capture job is already excluded")
+            open_issues = self.storage.all(
+                connection,
+                """
+                SELECT * FROM review_issues
+                WHERE capture_job_id = ?
+                  AND state IN ('OPEN', 'IN_PROGRESS', 'BLOCKED')
+                ORDER BY created_at, id
+                """,
+                (issue["capture_job_id"],),
+            )
+            if not open_issues:
+                raise ValueError("capture job has no open review issue")
+            for open_issue in open_issues:
+                self._record_resolution(
+                    connection,
+                    open_issue,
+                    TeacherAction.EXCLUDE_CAPTURE,
+                    None,
+                    reason,
+                    actor,
+                    ReviewIssueState.WAIVED,
+                )
+            self.capture.update_state(
+                connection,
+                issue["capture_job_id"],
+                CaptureJobState.EXCLUDED,
+            )
+            now = utc_now()
+            self.storage.insert(
+                connection,
+                "audit_events",
+                {
+                    "id": uuid.uuid4().hex,
+                    "session_id": issue["session_id"],
+                    "class_id": issue["class_id"],
+                    "entity_type": "capture_job",
+                    "entity_id": issue["capture_job_id"],
+                    "action": TeacherAction.EXCLUDE_CAPTURE.value,
+                    "actor": actor,
+                    "payload_json": json.dumps(
+                        {
+                            "reason": reason,
+                            "source_issue_id": issue_id,
+                            "closed_issue_ids": [row["id"] for row in open_issues],
+                        },
+                        ensure_ascii=False,
+                    ),
+                    "state": "RECORDED",
+                    "created_at": now,
+                    "updated_at": now,
+                },
+            )
+
     def _resolve_student(
         self,
         connection: sqlite3.Connection,

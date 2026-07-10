@@ -89,6 +89,53 @@ class FinalizationGateTests(unittest.TestCase):
             )
         )
 
+    def test_excluded_duplicate_does_not_create_final_score(self):
+        self.process(
+            b"original",
+            MockRecognitionInput(
+                student_no="001",
+                answer_candidates={1: "A", 2: "B"},
+            ),
+        )
+        duplicate = self.process(
+            b"duplicate",
+            MockRecognitionInput(
+                student_no="001",
+                answer_candidates={1: "A", 2: "B"},
+            ),
+        )
+        issue = self.review.list_issues(self.session.session_id)[0]
+        self.assertEqual(issue.issue_type, "IDENTITY_DUPLICATE")
+        self.review.exclude_capture_from_identity_issue(
+            issue.issue_id,
+            reason="重复拍摄",
+        )
+        decision = self.final.confirm_teacher(self.session.session_id)
+        self.assertEqual(decision.state, FinalizationGateState.READY)
+        result = self.final.finalize(self.session.session_id)
+        self.assertEqual(result.score_count, 1)
+        with self.database.connection() as connection:
+            excluded = connection.execute(
+                "SELECT state FROM capture_jobs WHERE id = ?",
+                (duplicate.capture_job_id,),
+            ).fetchone()[0]
+            score_count = connection.execute(
+                "SELECT COUNT(*) FROM final_scores"
+            ).fetchone()[0]
+        self.assertEqual(excluded, "EXCLUDED")
+        self.assertEqual(score_count, 1)
+        with self.database.connection() as connection:
+            connection.execute(
+                "UPDATE review_issues SET state = 'OPEN' WHERE id = ?",
+                (issue.issue_id,),
+            )
+            connection.commit()
+        with self.assertRaises(ValueError):
+            self.review.exclude_capture_from_identity_issue(
+                issue.issue_id,
+                reason="post-finalization attack",
+            )
+
     def test_finalize_allows_after_all_issues_resolved_and_writes_exports(self):
         self.process(b"resolved", MockRecognitionInput(answer_candidates={1: "A", 2: None}))
         issues = self.review.list_issues(self.session.session_id)

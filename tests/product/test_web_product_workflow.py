@@ -120,6 +120,24 @@ class WebProductWorkflowTests(unittest.TestCase):
         self.assertIn("普通 USB 数据线", template)
         self.assertIn("浏览器", template)
 
+    def test_identity_review_card_offers_audited_capture_exclusion(self):
+        from app.product.review.review_presenter import PresentedReviewIssue
+
+        card = self.web._issue_card(
+            "session",
+            PresentedReviewIssue(
+                "issue",
+                "IDENTITY_DUPLICATE",
+                "这张答卷可能重复拍摄。",
+                None,
+                "evidence.png",
+                "OPEN",
+            ),
+        )
+        self.assertIn("排除该答卷", card)
+        self.assertIn("exclude_capture", card)
+        self.assertIn("required", card)
+
     def test_actual_local_http_server_serves_product_home(self):
         import web_app
 

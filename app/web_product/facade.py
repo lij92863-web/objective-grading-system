@@ -102,6 +102,12 @@ class ProductFacade:
     def resolve_issue(self, issue_id: str, values: dict[str, str]) -> None:
         issue_type = values.get("issue_type", "")
         if issue_type.startswith("IDENTITY_"):
+            if values.get("exclude_capture") == "yes":
+                self.review.exclude_capture_from_identity_issue(
+                    issue_id,
+                    reason=values.get("reason", ""),
+                )
+                return
             self.review.resolve_identity(
                 issue_id,
                 student_no=values.get("student_no", ""),

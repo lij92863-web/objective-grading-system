@@ -23,6 +23,10 @@ reports_enhanced/
 data/uploads/
 data/captures/
 data/reports/
+data/local_app/
+local-test-materials/
+uploads/
+captures/
 local-test-materials/student_recognition_real_images/
 
 exams/tmp_exam/

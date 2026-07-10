@@ -15,7 +15,15 @@ from app.domain.grading import AnswerKey, QuestionSpec, Submission, grade_submis
 fixture = json.loads((ROOT / "tests/grading/golden/grading_core_cases.json").read_text(encoding="utf-8"))
 specs = (
     QuestionSpec(1, frozenset({"A"}), points=1, answer_text="A", question_type="single_choice"),
-    QuestionSpec(2, frozenset({"A", "C"}), points=2, partial_credit=True, partial_points=1, answer_text="AC", question_type="multiple_choice"),
+    QuestionSpec(
+        2,
+        frozenset({"A", "C"}),
+        points=2,
+        partial_credit=True,
+        partial_points=1,
+        answer_text="AC",
+        question_type="multiple_choice",
+    ),
     QuestionSpec(3, frozenset({"T"}), points=1, answer_text="T", question_type="true_false"),
     QuestionSpec(4, frozenset({"42"}), points=1, answer_text="42", question_type="blank"),
 )

@@ -97,8 +97,20 @@ class CanonicalGradingTests(unittest.TestCase):
 
     def test_duplicate_issue_preserves_evidence_and_severity(self):
         with tempfile.TemporaryDirectory(dir=ROOT / "data") as tmp:
-            identical = self._csv(tmp, "identical.csv", "question,answer,points,type\n1,A,1,single_choice\n1,A,1,single_choice\n")
-            conflict = self._csv(tmp, "conflict.csv", "question,answer,points,type\n1,A,1,single_choice\n1,B,2,single_choice\n")
+            identical = self._csv(
+                tmp,
+                "identical.csv",
+                "question,answer,points,type\n"
+                "1,A,1,single_choice\n"
+                "1,A,1,single_choice\n",
+            )
+            conflict = self._csv(
+                tmp,
+                "conflict.csv",
+                "question,answer,points,type\n"
+                "1,A,1,single_choice\n"
+                "1,B,2,single_choice\n",
+            )
             sub = Submission("S", "N", {1: frozenset({"A"})}, {1: "A"}, (), 2)
             key = load_answer_key(identical)
             self.assertEqual(key.duplicate_issues[0].row_numbers, (2, 3))

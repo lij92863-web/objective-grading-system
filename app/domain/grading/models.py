@@ -52,7 +52,11 @@ class AnswerKey:
 
     @property
     def total_points(self) -> float:
-        return sum(question.points for question in self.questions if question.status not in {"cancelled", "manual_review"})
+        return sum(
+            question.points
+            for question in self.questions
+            if question.status not in {"cancelled", "manual_review"}
+        )
 
     @property
     def by_number(self) -> Dict[int, QuestionSpec]:

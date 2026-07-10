@@ -37,7 +37,12 @@ if normalize_defs != ["app/domain/grading/normalize.py"]:
 
 orchestrator_path = ROOT / "app/application/grading/orchestrator.py"
 orchestrator_tree = ast.parse(orchestrator_path.read_text(encoding="utf-8"))
-run_functions = [node for node in orchestrator_tree.body if isinstance(node, ast.FunctionDef) and node.name == "run_grading_orchestrator"]
+run_functions = [
+    node
+    for node in orchestrator_tree.body
+    if isinstance(node, ast.FunctionDef)
+    and node.name == "run_grading_orchestrator"
+]
 if len(run_functions) != 1 or ast.unparse(run_functions[0].returns) != "GradingRunResult":
     fail("typed orchestrator must return GradingRunResult")
 if "Dict[str, object]" in orchestrator_path.read_text(encoding="utf-8"):

@@ -29,7 +29,7 @@ def extract_mark_metrics(image,option,policy:OMRPolicy=DEFAULT_OMR_POLICY):
     score=max(0,min(1,.45*dark+.35*cd+.2*comp-.25*bn))
     if bn>policy.border_noise_limit and cd<policy.weak_dark_ratio: cls="dirty"
     elif erase>policy.erasure_threshold and dark<policy.strong_dark_ratio: cls="erased"
-    elif dark>=policy.strong_dark_ratio and cd>=policy.strong_dark_ratio: cls="strong"
+    elif dark>=policy.strong_dark_ratio and cd>=policy.strong_center_density: cls="strong"
     elif dark>=policy.weak_dark_ratio: cls="weak"
     else: cls="blank"
     return MarkMetrics(option,dark,cd,comp,bn,uniform,erase,score,cls)

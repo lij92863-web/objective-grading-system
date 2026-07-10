@@ -9,8 +9,8 @@ def metric(option,score,cls): return MarkMetrics(option,score,score,score,0,1,0,
 class TestOMRMetrics(unittest.TestCase):
     def test_mark_metrics_strong_mark(self): self.assertEqual(extract_mark_metrics(img(lambda x,y:0),"A").classification,"strong")
     def test_mark_metrics_blank_mark(self): self.assertEqual(extract_mark_metrics(img(lambda x,y:255),"A").classification,"blank")
-    def test_mark_metrics_weak_mark(self): self.assertEqual(extract_mark_metrics(img(lambda x,y:0 if x<10 else 255),"A").classification,"weak")
-    def test_mark_metrics_erased_mark(self): self.assertEqual(extract_mark_metrics(img(lambda x,y:0 if x%2 else 255),"A").classification,"erased")
+    def test_mark_metrics_weak_mark(self): self.assertEqual(extract_mark_metrics(img(lambda x,y:0 if x in (9,10) else 255),"A").classification,"weak")
+    def test_mark_metrics_erased_mark(self): self.assertEqual(extract_mark_metrics(img(lambda x,y:0 if x==9 else 255),"A").classification,"erased")
     def test_border_noise_does_not_count_as_fill(self): self.assertEqual(extract_mark_metrics(img(lambda x,y:0 if x in (0,19) or y in (0,19) else 255),"A").classification,"dirty")
 class TestRecognizers(unittest.TestCase):
     def test_single_choice_clean_strong_auto_candidate(self): self.assertEqual(recognize_single_choice(1,[metric("A",.05,"blank"),metric("B",.8,"strong"),metric("C",.05,"blank")]).status,"auto_candidate")

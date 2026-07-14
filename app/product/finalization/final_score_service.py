@@ -94,22 +94,22 @@ class FinalScoreService:
         rows, submission_payloads = self._build_scores(decision)
         output_dir = self.output_root / session_id
         stage = self.output_root / f".{session_id}_{uuid.uuid4().hex}.staging"
-        stage.mkdir(parents=True, exist_ok=False)
-        csv_path, json_path = write_final_scores(stage, rows)
-        audit_path = write_finalization_audit(
-            stage,
-            {
-                "session_id": session_id,
-                "actor": actor,
-                "finalized_at": utc_now(),
-                "score_count": len(rows),
-                "gate": "READY",
-                "blockers": [],
-            },
-        )
-        staged = (csv_path, json_path, audit_path)
         published: list[Path] = []
         try:
+            stage.mkdir(parents=True, exist_ok=False)
+            csv_path, json_path = write_final_scores(stage, rows)
+            audit_path = write_finalization_audit(
+                stage,
+                {
+                    "session_id": session_id,
+                    "actor": actor,
+                    "finalized_at": utc_now(),
+                    "score_count": len(rows),
+                    "gate": "READY",
+                    "blockers": [],
+                },
+            )
+            staged = (csv_path, json_path, audit_path)
             with transaction(self.database) as connection:
                 self._persist_final_records(
                     connection,
@@ -218,6 +218,11 @@ class FinalScoreService:
         rows: list[dict[str, object]],
         submissions: list[dict[str, object]],
     ) -> None:
+        if len(rows) != len(submissions):
+            raise ValueError(
+                "final score row/submission count mismatch: "
+                f"{len(rows)} rows != {len(submissions)} submissions"
+            )
         now = utc_now()
         for row, submission in zip(rows, submissions):
             validate_final_score(row)

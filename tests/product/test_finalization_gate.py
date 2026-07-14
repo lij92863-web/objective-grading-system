@@ -354,6 +354,56 @@ class FinalizationGateTests(unittest.TestCase):
                 self.final.finalize(self.session.session_id)
         self.assert_no_formal_publication()
 
+    def test_more_score_rows_than_submissions_fails_closed(self):
+        self.prepare_ready_manual_score()
+        decision = self.final.gate.evaluate(self.session.session_id)
+        rows, _ = self.final._build_scores(decision)
+        with mock.patch.object(
+            self.final,
+            "_build_scores",
+            return_value=(rows, []),
+        ):
+            with self.assertRaisesRegex(ValueError, "count mismatch"):
+                self.final.finalize(self.session.session_id)
+        self.assert_no_formal_publication()
+        self.assert_no_staging_directory()
+
+    def test_more_submissions_than_score_rows_fails_closed(self):
+        self.prepare_ready_manual_score()
+        decision = self.final.gate.evaluate(self.session.session_id)
+        _, submissions = self.final._build_scores(decision)
+        with mock.patch.object(
+            self.final,
+            "_build_scores",
+            return_value=([], submissions),
+        ):
+            with self.assertRaisesRegex(ValueError, "count mismatch"):
+                self.final.finalize(self.session.session_id)
+        self.assert_no_formal_publication()
+        self.assert_no_staging_directory()
+
+    def test_final_score_export_failure_cleans_staging_and_publishes_nothing(self):
+        self.prepare_ready_manual_score()
+        with mock.patch(
+            "app.product.finalization.final_score_service.write_final_scores",
+            side_effect=RuntimeError("score exporter attack"),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "score exporter attack"):
+                self.final.finalize(self.session.session_id)
+        self.assert_no_formal_publication()
+        self.assert_no_staging_directory()
+
+    def test_finalization_audit_export_failure_cleans_staging_and_publishes_nothing(self):
+        self.prepare_ready_manual_score()
+        with mock.patch(
+            "app.product.finalization.final_score_service.write_finalization_audit",
+            side_effect=RuntimeError("audit exporter attack"),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "audit exporter attack"):
+                self.final.finalize(self.session.session_id)
+        self.assert_no_formal_publication()
+        self.assert_no_staging_directory()
+
     def test_finalization_rejects_non_finite_database_override(self):
         self.prepare_ready_manual_score()
         with self.database.connection() as connection:
@@ -441,6 +491,16 @@ class FinalizationGateTests(unittest.TestCase):
         output = self.root / "exports" / self.session.session_id
         self.assertFalse((output / "final_scores.csv").exists())
         self.assertFalse((output / "final_scores.json").exists())
+        self.assertFalse((output / "finalization_audit.json").exists())
+        self.assert_no_staging_directory()
+
+    def assert_no_staging_directory(self):
+        staging = list(
+            (self.root / "exports").glob(
+                f".{self.session.session_id}_*.staging"
+            )
+        )
+        self.assertEqual(staging, [])
 
 
 if __name__ == "__main__":

@@ -264,19 +264,23 @@ class CaptureQueue:
         metadata_json: str,
     ) -> None:
         now = utc_now()
-        self.storage.insert(
-            connection,
-            "mobile_capture_receipts",
-            {
-                "id": uuid.uuid4().hex,
-                "session_id": session_id,
-                "client_capture_id": client_capture_id,
-                "capture_job_id": capture_job_id,
-                "sha256": digest,
-                "metadata_json": metadata_json,
-                "created_at": now,
-                "updated_at": now,
-            },
+        connection.execute(
+            """
+            INSERT INTO mobile_capture_receipts (
+                id, session_id, client_capture_id, capture_job_id, sha256,
+                metadata_json, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                uuid.uuid4().hex,
+                session_id,
+                client_capture_id,
+                capture_job_id,
+                digest,
+                metadata_json,
+                now,
+                now,
+            ),
         )
 
     @staticmethod

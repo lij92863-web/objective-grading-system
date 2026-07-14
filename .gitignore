@@ -28,6 +28,8 @@ local-test-materials/
 uploads/
 captures/
 local-test-materials/student_recognition_real_images/
+local-tools/
+data/mobile-capture/
 
 exams/tmp_exam/
 exams/tmp_exam_mismatch/

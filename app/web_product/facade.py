@@ -8,6 +8,7 @@ from app.capture.upload_source import ManualUploadSource
 from app.capture.watched_folder_source import WatchedFolderSource
 from app.classes import ClassService
 from app.exam_session import AssetService, AssetType, SessionService
+from app.product.capture import MobileCaptureService
 from app.product.finalization import FinalScoreService
 from app.product.pipeline import MockRecognitionInput, ProductPipeline
 from app.product.review.manual_resolution import TeacherAction
@@ -35,6 +36,11 @@ class ProductFacade:
         self.assets = AssetService(self.database, paths.root)
         self.queue = CaptureQueue(self.database, paths.root)
         self.pipeline = ProductPipeline(self.database, paths.root)
+        self.mobile_capture = MobileCaptureService(
+            self.database,
+            self.queue,
+            self.pipeline,
+        )
         self.review = ReviewWorkflow(self.database)
         self.final_scores = FinalScoreService(self.database, paths.exports)
 
@@ -98,6 +104,25 @@ class ProductFacade:
         for registration in result.created:
             self._conservative_process(registration.job)
         return result
+
+    def capture_mobile_web(
+        self,
+        session_id: str,
+        filename: str,
+        content: bytes,
+        content_type: str,
+        fields: dict[str, str],
+    ):
+        return self.mobile_capture.ingest(
+            session_id,
+            filename,
+            content,
+            content_type,
+            fields,
+        )
+
+    def mobile_capture_status(self, session_id: str) -> dict[str, object]:
+        return self.mobile_capture.status(session_id)
 
     def resolve_issue(self, issue_id: str, values: dict[str, str]) -> None:
         issue_type = values.get("issue_type", "")

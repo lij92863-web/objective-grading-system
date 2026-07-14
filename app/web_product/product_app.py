@@ -1,10 +1,13 @@
 import dataclasses
 import html
+import json
 import mimetypes
 import re
 from pathlib import Path
 from typing import Mapping
 
+from app.capture.mobile_web_camera_source import MobileCaptureError
+from app.product.capture.mobile_capture_service import MobileCaptureServiceError
 from app.roster.roster_validator import RosterImportState
 
 from .facade import ProductFacade, ProductPaths
@@ -18,6 +21,7 @@ TEMPLATE_ROOT = PROJECT_ROOT / "web" / "templates" / "product"
 class UploadedFile:
     filename: str
     content: bytes
+    content_type: str = ""
 
 
 @dataclasses.dataclass(frozen=True)
@@ -44,9 +48,27 @@ class ProductWebController:
         self.template_root = template_root
 
     def handles(self, path: str) -> bool:
-        return path == "/" or path.startswith("/classes") or path.startswith("/sessions")
+        return (
+            path == "/"
+            or path.startswith("/classes")
+            or path.startswith("/sessions")
+            or path.startswith("/mobile-capture")
+        )
 
     def get(self, path: str) -> WebResponse | None:
+        if path == "/mobile-capture/health.json":
+            return self._json({
+                "ok": True,
+                "service": "objective-grading-mobile-capture",
+                "transport": "adb-reverse-compatible",
+                "real_recognition_enabled": False,
+            })
+        match = re.fullmatch(r"/sessions/([^/]+)/capture/status\.json", path)
+        if match:
+            try:
+                return self._json(self.facade.mobile_capture_status(match.group(1)))
+            except MobileCaptureServiceError as exc:
+                return self._json_error(str(exc), exc.status, exc.code)
         if path == "/":
             return self._page("home.html", title="客观题批改本地工作台")
         if path == "/classes":
@@ -102,6 +124,35 @@ class ProductWebController:
         fields: Mapping[str, str],
         files: Mapping[str, UploadedFile],
     ) -> WebResponse | None:
+        mobile_match = re.fullmatch(r"/sessions/([^/]+)/capture/mobile-web", path)
+        if mobile_match:
+            upload = files.get("image")
+            if upload is None:
+                return self._json_error("请选择图片。", 400, "IMAGE_REQUIRED")
+            try:
+                outcome = self.facade.capture_mobile_web(
+                    mobile_match.group(1),
+                    upload.filename,
+                    upload.content,
+                    upload.content_type,
+                    dict(fields),
+                )
+            except MobileCaptureError as exc:
+                return self._json_error(str(exc), exc.status, exc.code)
+            except Exception:
+                return self._json_error(
+                    "图片登记失败，请保留手机中的待上传照片并重试。",
+                    500,
+                    "CAPTURE_REGISTRATION_FAILED",
+                )
+            return self._json({
+                "ok": True,
+                "capture_job_id": outcome.capture_job_id,
+                "duplicate": outcome.duplicate,
+                "state": outcome.state,
+                "warning": outcome.warning,
+                "server_received_at": outcome.server_received_at,
+            }, 200 if outcome.duplicate else 201)
         try:
             if path == "/classes":
                 classroom = self.facade.create_class(
@@ -340,6 +391,21 @@ class ProductWebController:
             status=status,
             title="操作未完成",
             message=html.escape(message),
+        )
+
+    @staticmethod
+    def _json(payload: dict[str, object], status: int = 200) -> WebResponse:
+        return WebResponse(
+            status,
+            "application/json; charset=utf-8",
+            json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            {"Cache-Control": "no-store"},
+        )
+
+    def _json_error(self, message: str, status: int, code: str) -> WebResponse:
+        return self._json(
+            {"ok": False, "message": message, "error_code": code},
+            status,
         )
 
     @staticmethod

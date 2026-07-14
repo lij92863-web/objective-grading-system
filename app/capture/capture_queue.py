@@ -1,6 +1,6 @@
 import dataclasses
 import hashlib
-import shutil
+import os
 import sqlite3
 import uuid
 from pathlib import Path
@@ -24,6 +24,18 @@ class CaptureRegistration:
     job: CaptureJob
     duplicate: bool = False
     warning: str = ""
+
+
+class CaptureSessionNotFoundError(ValueError):
+    pass
+
+
+class CaptureSessionStateError(ValueError):
+    pass
+
+
+class CaptureClientConflictError(ValueError):
+    pass
 
 
 class CaptureQueue:
@@ -63,6 +75,8 @@ class CaptureQueue:
         *,
         source_path: str = "",
         source_mtime: float = 0,
+        client_capture_id: str = "",
+        metadata_json: str = "{}",
     ) -> CaptureRegistration:
         suffix = Path(filename).suffix.lower()
         if suffix not in IMAGE_SUFFIXES:
@@ -70,56 +84,105 @@ class CaptureQueue:
         if not content:
             raise ValueError("image payload is empty")
         digest = hashlib.sha256(content).hexdigest()
-        with transaction(self.database) as connection:
-            session = self.sessions.get(connection, session_id)
-            if session is None:
-                raise ValueError("session does not exist")
-            if session.state not in {
-                ExamSessionState.CAPTURE_READY,
-                ExamSessionState.CAPTURING,
-                ExamSessionState.PROCESSING,
-                ExamSessionState.REVIEW_REQUIRED,
-            }:
-                raise ValueError("session is not capture ready")
-            duplicate = self._find_hash(connection, session_id, digest)
-            if duplicate is not None:
-                return CaptureRegistration(
-                    duplicate,
-                    duplicate=True,
-                    warning="相同图片已在队列中，未重复创建任务。",
-                )
-            job_id = uuid.uuid4().hex
-            directory = self.storage_root / "uploads" / session_id
-            directory.mkdir(parents=True, exist_ok=True)
-            target = directory / f"{job_id}{suffix}"
-            target.write_bytes(content)
-            now = utc_now()
-            job = CaptureJob(
-                job_id,
-                session_id,
-                session.class_id,
-                source_type,
-                source_path,
-                str(target),
-                digest,
-                len(content),
-                source_mtime,
-                CaptureJobState.QUEUED,
-                now,
-                now,
-            )
-            self.storage.insert(
-                connection,
-                "capture_jobs",
-                self._values(job),
-            )
-            if session.state is ExamSessionState.CAPTURE_READY:
-                self.sessions.update_state(
-                    connection,
-                    session_id,
+        target: Path | None = None
+        temporary: Path | None = None
+        try:
+            with transaction(self.database) as connection:
+                session = self.sessions.get(connection, session_id)
+                if session is None:
+                    raise CaptureSessionNotFoundError("session does not exist")
+                if session.state not in {
+                    ExamSessionState.CAPTURE_READY,
                     ExamSessionState.CAPTURING,
+                    ExamSessionState.PROCESSING,
+                    ExamSessionState.REVIEW_REQUIRED,
+                }:
+                    raise CaptureSessionStateError("session is not capture ready")
+                if client_capture_id:
+                    receipt = self._find_mobile_receipt(
+                        connection,
+                        session_id,
+                        client_capture_id,
+                    )
+                    if receipt is not None:
+                        receipt_job, receipt_digest = receipt
+                        if receipt_digest != digest:
+                            raise CaptureClientConflictError(
+                                "client capture id is already bound to different content"
+                            )
+                        return CaptureRegistration(
+                            receipt_job,
+                            duplicate=True,
+                            warning="该图片已进入队列。",
+                        )
+                duplicate = self._find_hash(connection, session_id, digest)
+                if duplicate is not None:
+                    if client_capture_id:
+                        self._add_mobile_receipt(
+                            connection,
+                            session_id,
+                            client_capture_id,
+                            duplicate.capture_job_id,
+                            digest,
+                            metadata_json,
+                        )
+                    return CaptureRegistration(
+                        duplicate,
+                        duplicate=True,
+                        warning="相同图片已在队列中，未重复创建任务。",
+                    )
+                job_id = uuid.uuid4().hex
+                directory = self.storage_root / "uploads" / session_id
+                directory.mkdir(parents=True, exist_ok=True)
+                target = directory / f"{job_id}{suffix}"
+                temporary = directory / f".{job_id}.part"
+                temporary.write_bytes(content)
+                os.replace(temporary, target)
+                temporary = None
+                now = utc_now()
+                job = CaptureJob(
+                    job_id,
+                    session_id,
+                    session.class_id,
+                    source_type,
+                    source_path,
+                    str(target),
+                    digest,
+                    len(content),
+                    source_mtime,
+                    CaptureJobState.QUEUED,
+                    now,
                     now,
                 )
+                self.storage.insert(
+                    connection,
+                    "capture_jobs",
+                    self._values(job),
+                )
+                if client_capture_id:
+                    self._add_mobile_receipt(
+                        connection,
+                        session_id,
+                        client_capture_id,
+                        job_id,
+                        digest,
+                        metadata_json,
+                    )
+                if session.state is ExamSessionState.CAPTURE_READY:
+                    self.sessions.update_state(
+                        connection,
+                        session_id,
+                        ExamSessionState.CAPTURING,
+                        now,
+                    )
+        except Exception:
+            for path in (temporary, target):
+                if path is not None:
+                    try:
+                        path.unlink(missing_ok=True)
+                    except OSError:
+                        pass
+            raise
         return CaptureRegistration(job)
 
     def list_jobs(self, session_id: str) -> list[CaptureJob]:
@@ -147,6 +210,15 @@ class CaptureQueue:
             (state.value, error_code, utc_now(), job_id),
         )
 
+    def mark_failed(self, job_id: str, error_code: str) -> None:
+        with transaction(self.database) as connection:
+            self.update_state(
+                connection,
+                job_id,
+                CaptureJobState.FAILED,
+                error_code,
+            )
+
     def _find_hash(
         self,
         connection: sqlite3.Connection,
@@ -159,6 +231,53 @@ class CaptureQueue:
             (session_id, digest),
         )
         return self._map(row) if row else None
+
+    def _find_mobile_receipt(
+        self,
+        connection: sqlite3.Connection,
+        session_id: str,
+        client_capture_id: str,
+    ) -> tuple[CaptureJob, str] | None:
+        row = self.storage.one(
+            connection,
+            """
+            SELECT capture_jobs.*, mobile_capture_receipts.sha256 AS receipt_sha256
+            FROM mobile_capture_receipts
+            JOIN capture_jobs
+              ON capture_jobs.id = mobile_capture_receipts.capture_job_id
+            WHERE mobile_capture_receipts.session_id = ?
+              AND mobile_capture_receipts.client_capture_id = ?
+            """,
+            (session_id, client_capture_id),
+        )
+        if row is None:
+            return None
+        return self._map(row), row["receipt_sha256"]
+
+    def _add_mobile_receipt(
+        self,
+        connection: sqlite3.Connection,
+        session_id: str,
+        client_capture_id: str,
+        capture_job_id: str,
+        digest: str,
+        metadata_json: str,
+    ) -> None:
+        now = utc_now()
+        self.storage.insert(
+            connection,
+            "mobile_capture_receipts",
+            {
+                "id": uuid.uuid4().hex,
+                "session_id": session_id,
+                "client_capture_id": client_capture_id,
+                "capture_job_id": capture_job_id,
+                "sha256": digest,
+                "metadata_json": metadata_json,
+                "created_at": now,
+                "updated_at": now,
+            },
+        )
 
     @staticmethod
     def _values(job: CaptureJob) -> dict[str, object]:

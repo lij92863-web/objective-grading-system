@@ -7,6 +7,7 @@ from email.parser import BytesParser
 from email.policy import default as email_policy
 import json
 import mimetypes
+import re
 import sys
 import tempfile
 import traceback
@@ -28,6 +29,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 import roster_manager
+from app.capture.mobile_web_camera_source import MAX_MOBILE_CAPTURE_REQUEST_BYTES
 from app.application.product_preview_adapter import build_preview_data
 from app.data_io import draft_to_review_rows, parse_answer_source, review_rows_to_answer_key_csv
 from app.validators import has_blocking_errors
@@ -95,6 +97,7 @@ class FormField:
     value: str = ""
     filename: str = ""
     content: bytes = b""
+    content_type: str = ""
 
 
 FormData = Dict[str, Union[FormField, List[FormField]]]
@@ -257,7 +260,11 @@ class WebHandler(BaseHTTPRequestHandler):
             if isinstance(item, list):
                 item = item[0] if item else FormField()
             if item.filename:
-                files[name] = UploadedFile(item.filename, item.content)
+                files[name] = UploadedFile(
+                    item.filename,
+                    item.content,
+                    item.content_type,
+                )
             else:
                 fields[name] = item.value.strip()
         return fields, files
@@ -290,6 +297,7 @@ class WebHandler(BaseHTTPRequestHandler):
                 value=payload.decode(part.get_content_charset() or "utf-8", errors="replace") if not filename else "",
                 filename=filename,
                 content=payload,
+                content_type=part.get_content_type(),
             )
             old = form.get(name)
             if old is None:
@@ -336,6 +344,20 @@ class WebHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         parsed = urlparse(self.path)
         try:
+            if re.fullmatch(r"/sessions/[^/]+/capture/mobile-web", parsed.path):
+                try:
+                    request_length = int(self.headers.get("Content-Length", "0"))
+                except ValueError:
+                    return self.send_error_json("Content-Length 无效。", 400)
+                if request_length > MAX_MOBILE_CAPTURE_REQUEST_BYTES:
+                    return self.send_json(
+                        {
+                            "ok": False,
+                            "message": "上传请求超过允许大小。",
+                            "error_code": "REQUEST_TOO_LARGE",
+                        },
+                        413,
+                    )
             if product_controller().handles(parsed.path):
                 fields, files = self.product_form(self.parse_form())
                 product_response = product_controller().post(

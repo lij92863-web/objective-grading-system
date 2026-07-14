@@ -1,6 +1,6 @@
 """Versioned SQLite schema for local product data."""
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 SCHEMA_SQL = """
 PRAGMA foreign_keys = ON;
@@ -76,6 +76,18 @@ CREATE TABLE IF NOT EXISTS capture_jobs (
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     UNIQUE(session_id, sha256)
+);
+
+CREATE TABLE IF NOT EXISTS mobile_capture_receipts (
+    id TEXT PRIMARY KEY,
+    session_id TEXT NOT NULL REFERENCES exam_sessions(session_id),
+    client_capture_id TEXT NOT NULL,
+    capture_job_id TEXT NOT NULL REFERENCES capture_jobs(id),
+    sha256 TEXT NOT NULL,
+    metadata_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE(session_id, client_capture_id)
 );
 
 CREATE TABLE IF NOT EXISTS recognition_drafts (
@@ -179,5 +191,6 @@ CREATE TABLE IF NOT EXISTS audit_events (
 CREATE INDEX IF NOT EXISTS ix_students_class ON students(class_id);
 CREATE INDEX IF NOT EXISTS ix_sessions_class ON exam_sessions(class_id);
 CREATE INDEX IF NOT EXISTS ix_jobs_session ON capture_jobs(session_id);
+CREATE INDEX IF NOT EXISTS ix_mobile_receipts_session ON mobile_capture_receipts(session_id);
 CREATE INDEX IF NOT EXISTS ix_issues_session_state ON review_issues(session_id, state);
 """

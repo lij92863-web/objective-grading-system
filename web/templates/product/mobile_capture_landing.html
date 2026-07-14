@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/static/mobile_capture.css">
+</head>
+<body class="mobile-landing">
+  <header class="mobile-header">
+    <div>
+      <p class="eyebrow">vivo X200 · USB 数据线采集</p>
+      <h1>{{title}}</h1>
+    </div>
+    <span class="connection-pill">ADB reverse</span>
+  </header>
+  <main class="session-list">
+    <p class="boundary-note">手机负责拍照和可靠上传；上传后进入待处理/待复核，不代表识别或批改完成。</p>
+    {{session_items}}
+  </main>
+</body>
+</html>

@@ -63,6 +63,11 @@ class ProductWebController:
                 "transport": "adb-reverse-compatible",
                 "real_recognition_enabled": False,
             })
+        if path == "/mobile-capture":
+            return self._mobile_capture_landing()
+        mobile_page_match = re.fullmatch(r"/mobile-capture/([^/]+)", path)
+        if mobile_page_match:
+            return self._mobile_capture_page(mobile_page_match.group(1))
         match = re.fullmatch(r"/sessions/([^/]+)/capture/status\.json", path)
         if match:
             try:
@@ -267,15 +272,58 @@ class ProductWebController:
         )
 
     def _capture_page(self, session_id: str) -> WebResponse:
+        all_jobs = self.facade.queue.list_jobs(session_id)
         jobs = "".join(
             f"<li>{html.escape(job.capture_job_id[:8])}：{html.escape(job.state.value)}</li>"
-            for job in self.facade.queue.list_jobs(session_id)
+            for job in all_jobs
         ) or "<li>队列为空</li>"
+        mobile_jobs = [
+            job for job in all_jobs
+            if job.source_type.value == "MOBILE_WEB_USB_CAMERA"
+        ]
+        mobile_recent = "".join(
+            f"<li>{html.escape(job.capture_job_id[:8])}：{html.escape(job.state.value)}</li>"
+            for job in reversed(mobile_jobs[-10:])
+        ) or "<li>尚无手机采集任务</li>"
         return self._page(
             "capture.html",
             title="采集图片",
             session_id=html.escape(session_id),
             jobs=jobs,
+            mobile_count=len(mobile_jobs),
+            mobile_recent=mobile_recent,
+        )
+
+    def _mobile_capture_landing(self) -> WebResponse:
+        items = "".join(
+            (
+                '<article class="mobile-session-card">'
+                f"<h2>{html.escape(item.exam_name)}</h2>"
+                f"<p>{html.escape(item.class_name)}</p>"
+                f"<p>状态：{html.escape(item.state)} · 已拍：{item.captured_count}</p>"
+                f'<a class="primary-link" href="/mobile-capture/{html.escape(item.session_id)}">进入采集</a>'
+                "</article>"
+            )
+            for item in self.facade.mobile_capture_sessions()
+        ) or '<p class="empty-state">当前没有允许采集的考试。请先在电脑端准备答案和模板。</p>'
+        return self._page(
+            "mobile_capture_landing.html",
+            title="选择考试",
+            session_items=items,
+        )
+
+    def _mobile_capture_page(self, session_id: str) -> WebResponse:
+        try:
+            session = self.facade.mobile_capture_session(session_id)
+        except MobileCaptureServiceError as exc:
+            return self._error(str(exc), exc.status)
+        return self._page(
+            "mobile_capture.html",
+            title="vivo X200 连续拍摄",
+            session_id=html.escape(session.session_id),
+            exam_name=html.escape(session.exam_name),
+            class_name=html.escape(session.class_name),
+            session_state=html.escape(session.state),
         )
 
     def _review_page(self, session_id: str) -> WebResponse:

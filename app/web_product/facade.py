@@ -124,6 +124,12 @@ class ProductFacade:
     def mobile_capture_status(self, session_id: str) -> dict[str, object]:
         return self.mobile_capture.status(session_id)
 
+    def mobile_capture_sessions(self):
+        return self.mobile_capture.available_sessions()
+
+    def mobile_capture_session(self, session_id: str):
+        return self.mobile_capture.session_summary(session_id)
+
     def resolve_issue(self, issue_id: str, values: dict[str, str]) -> None:
         issue_type = values.get("issue_type", "")
         if issue_type.startswith("IDENTITY_"):
